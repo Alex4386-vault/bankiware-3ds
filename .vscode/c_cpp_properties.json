@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "3DS",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/devkitpro/libctru/include/**",
+                "/opt/devkitpro/devkitARM/arm-none-eabi/include/**",
+                "/opt/devkitpro/devkitARM/lib/gcc/arm-none-eabi/**"
+            ],
+            "defines": [
+                "__3DS__",
+                "ARM11",
+                "ARM_ARCH=6"
+            ],
+            "compilerPath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "gcc-arm"
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,18 @@
+/Exported_Sounds
+/Export_Textures
+
+# No compiled binaries!
+/*.3dsx
+/*.elf
+/*.smdh
+
+# No copyright infringements!
+/raw
+/data
+/build
+
+# debug stuff
+/temp_textures
+
+# Build your own romfs!
+/romfs

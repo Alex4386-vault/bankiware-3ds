@@ -1,0 +1,208 @@
+{
+  "defaults": {
+    "maxWidth": 256,
+    "maxHeight": 256,
+    "rotation": -90,
+    "alignment": "center"
+  },
+  "textures": {
+    "spr_bakudan__0": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan__1": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan0_0": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan0_1": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan1_0": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan1_1": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan2_0": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan2_1": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan3_0": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan3_1": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan4_0": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan4_1": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan5_0": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan5_1": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan6_0": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan6_1": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "spr_bakudan7_0": {
+      "width": 512,
+      "height": 32,
+      "alignment": "left",
+      "scaleRatio": "height"
+    },
+    "bg_1_0": {
+      "width": 128,
+      "height": 128
+    },
+    "spr_title_0": {
+      "width": 256,
+      "height": 128
+    },
+    "spr_titlebanki_0": {
+      "width": 128,
+      "height": 128
+    },
+    "spr_ui_0": {
+      "width": 256,
+      "height": 128
+    },
+    "spr_ui_1": {
+      "width": 256,
+      "height": 128
+    },
+    "spr_intro1_0": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_intro2_0": {
+      "width": 512,
+      "height": 128
+    },
+    "spr_intro3_0": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_intro4_0": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_lifebanki_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_lifebanki_1": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_lifebanki_2": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_tv1_0": {
+      "width": 128,
+      "height": 128
+    },
+    "spr_tv2_0": {
+      "width": 128,
+      "height": 128
+    },
+    "spr_wakakage1_0": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_wakakage1_1": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_wakakage1_2": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_count_0": {
+      "width": 32,
+      "height": 32
+    },
+    "spr_count_1": {
+      "width": 32,
+      "height": 32
+    },
+    "spr_count_2": {
+      "width": 32,
+      "height": 32
+    },
+    "spr_m1_1_banki_0": {
+      "width": 128,
+      "height": 256
+    },
+    "spr_m1_1_beam1_0": {
+      "width": 256,
+      "height": 64
+    },
+    "spr_m1_1_beam1_1": {
+      "width": 256,
+      "height": 64
+    },
+    "spr_m1_1_enemy1_0": {
+      "width": 64,
+      "height": 64
+    }
+  }
+}

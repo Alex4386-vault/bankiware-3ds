@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch in Citra",
+            "type": "shell",
+            "request": "launch",
+            "command": "citra",
+            "args": ["${workspaceFolder}/${workspaceFolderBasename}.3dsx"],
+            "preLaunchTask": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

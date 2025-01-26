@@ -1,0 +1,54 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "make",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "options": {
+                "env": {
+                    "DEVKITPRO": "/opt/devkitpro",
+                    "DEVKITARM": "/opt/devkitpro/devkitARM"
+                }
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "make clean",
+            "options": {
+                "env": {
+                    "DEVKITPRO": "/opt/devkitpro",
+                    "DEVKITARM": "/opt/devkitpro/devkitARM"
+                }
+            }
+        },
+        {
+            "label": "convert textures",
+            "type": "shell",
+            "command": "./tools/convert_textures.sh",
+            "options": {
+                "env": {
+                    "DEVKITPRO": "/opt/devkitpro",
+                    "DEVKITARM": "/opt/devkitpro/devkitARM"
+                }
+            }
+        }
+    ]
+}

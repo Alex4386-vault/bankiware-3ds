@@ -1,0 +1,12 @@
+{
+  "files.associations": {
+    "text_renderer.h": "c",
+    "texture_loader.h": "c",
+    "sound_system.h": "c",
+    "scene_manager.h": "c",
+    "common.h": "c",
+    "citro2d.h": "c",
+    "3ds.h": "c",
+    "game_level_types.h": "c"
+  }
+}
