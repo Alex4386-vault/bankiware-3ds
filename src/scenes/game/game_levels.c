@@ -4,6 +4,7 @@
 // Array of game levels
 static GameLevel* gameLevels[] = {
     (GameLevel*)&LaserBeamGame,  // Cast to GameLevel* to match array type
+    (GameLevel*)&ExampleStubGame,  // Cast to GameLevel* to match array type
     NULL  // Sentinel value
 };
 

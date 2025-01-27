@@ -142,6 +142,8 @@ static void handleLaserBeamGameHit(GameSceneData* data) {
         levelData->success = false;
         data->lastGameState = GAME_FAILURE;
     }
+
+    playWavLayered("romfs:/sounds/se_beam.wav");
 }
 
 static void laserBeamGameHandleInput(GameSceneData* data, const InputState* input) {

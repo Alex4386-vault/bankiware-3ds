@@ -8,6 +8,7 @@
 
 // Level declarations
 extern const GameLevel LaserBeamGame;
+extern const GameLevel ExampleStubGame;
 
 // Level management functions
 GameLevel* getGameLevel(int levelNumber);

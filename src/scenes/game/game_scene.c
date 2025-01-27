@@ -94,6 +94,8 @@ static void gameLeaveHandler(Scene *scene) {
         playWavFromRomfsRange("romfs:/sounds/bgm_jingle2.wav", 0, SECONDS_TO_SAMPLES(1.8f));
         data->remainingLife--;
     }
+
+    data->lastGameState = GAME_UNDEFINED;
     
     // Set up next level timings
     if (data->currentLevel < 10) {

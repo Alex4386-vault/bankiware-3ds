@@ -112,6 +112,18 @@
       "width": 128,
       "height": 128
     },
+    "bg_2_0": {
+      "width": 64,
+      "height": 64
+    },
+    "bg_3_0": {
+      "width": 64,
+      "height": 64
+    },
+    "bg_4_0": {
+      "width": 64,
+      "height": 64
+    },
     "spr_title_0": {
       "width": 256,
       "height": 128
