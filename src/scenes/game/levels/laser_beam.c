@@ -52,7 +52,6 @@ static void laserBeamGameInit(GameSceneData* data) {
     data->currentLevelData = levelData;
     
     // Set game session time
-    data->gameSessionTime = 4.0f;  // 4 seconds to complete the level
     data->gameLeftTime = data->gameSessionTime;
     
     playWavFromRomfs("romfs:/sounds/bgm_test.wav");

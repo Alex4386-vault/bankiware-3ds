@@ -323,7 +323,7 @@ static void gameDrawTimer(Scene *scene) {
         char path[64];
         snprintf(path, sizeof(path), "romfs:/textures/spr_count_%d.t3x", number);
 
-        displayImageWithScaling(path, 10 + offsetX, SCREEN_HEIGHT_BOTTOM - 64 + offsetY, NULL, scale, scale);
+        displayImageWithScaling(path, 10 + offsetX, SCREEN_HEIGHT_BOTTOM - GAME_TIMER_HEIGHT + offsetY, NULL, scale, scale);
     }
 }
 

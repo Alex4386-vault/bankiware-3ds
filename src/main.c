@@ -1,11 +1,16 @@
 #include <3ds.h>
 #include <citro2d.h>
+#include <stdlib.h>
 #include "scenes/scene_manager.h"
 #include "include/texture_loader.h"
 #include "include/sound_system.h"
 #include "include/text_renderer.h"
 
 int main(int argc, char* argv[]) {
+    // Initialize random
+    srand(time(NULL));
+
+    // Initialize graphics
     GraphicsContext context = {0};
     Result rc = initGraphics(&context);
     if (R_FAILED(rc)) {

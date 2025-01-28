@@ -23,4 +23,6 @@ typedef struct {
     touchPosition touch;
 } InputState;
 
+float frand();
+
 #endif // SCENES_COMMON_H

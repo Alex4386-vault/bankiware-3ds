@@ -215,6 +215,18 @@
     "spr_m1_1_enemy1_0": {
       "width": 64,
       "height": 64
+    },
+    "spr_m1_2_bankibody_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_2_bankibody_1": {
+      "width": 128,
+      "height": 256
+    },
+    "spr_m1_2_bankihead_0": {
+      "width": 64,
+      "height": 64
     }
   }
 }

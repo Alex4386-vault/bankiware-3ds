@@ -3,6 +3,8 @@
 
 #include "../scene.h"
 
+#define GAME_TIMER_HEIGHT 64.0f
+
 typedef enum BankiState {
     BANKI_IDLE,
     BANKI_EXCITED,
