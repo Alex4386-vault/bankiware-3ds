@@ -57,20 +57,20 @@ static void dialogueSelectUpdate(GameSceneData* data, float deltaTime) {
     if (levelData->offsetY >= 64.0f) levelData->offsetY = 0.0f;
 }
 
-// static char* dialogueSelectGameOption(int option) {
-//     switch (option) {
-//         case 0:
-//             return "Option 1";
-//         case 1:
-//             return "Option 2";
-//         case 2:
-//             return "Option 3";
-//         case 3:
-//             return "Option 4";
-//         default:
-//             return "Unknown";
-//     }
-// }
+static char* dialogueSelectGameOption(int option) {
+    switch (option) {
+        case 0:
+            return "かわいい";
+        case 1:
+            return "kawaii";
+        case 2:
+            return "KAWAII";
+        case 3:
+            return "カワイイ";
+        default:
+            return "Unknown";
+    }
+}
 
 static void dialogueSelectDraw(GameSceneData* data, const GraphicsContext* context) {
     DialogueSelectGameData* levelData = (DialogueSelectGameData*)data->currentLevelData;
@@ -94,6 +94,9 @@ static void dialogueSelectDraw(GameSceneData* data, const GraphicsContext* conte
     C2D_SceneBegin(context->bottom);
     C2D_TargetClear(context->bottom, C2D_Color32(0, 0, 0, 255));
 
+    // draw a background for bottom
+    displayTiledImage("romfs:/textures/bg_5_0.t3x", 0, 0, SCREEN_WIDTH_BOTTOM, SCREEN_HEIGHT_BOTTOM, levelData->offsetX, levelData->offsetY);
+
     // show 4 dialogue options,
     float optionX = (SCREEN_WIDTH_BOTTOM / 2) - 64.0f;
     float optionHeights = (SCREEN_HEIGHT_BOTTOM - 40) / 4;
@@ -103,19 +106,16 @@ static void dialogueSelectDraw(GameSceneData* data, const GraphicsContext* conte
         float availableY = optionHeights - 32.0f;
         optionY += availableY / 2;
         displayImage("romfs:/textures/spr_m1_3_ui_0.t3x", optionX, optionY);
-        drawTextWithFlags(optionX + 64, optionY + 8, 0.5f, 1.0f, 1.0f, C2D_Color32(0, 0, 0, 255), C2D_AlignCenter, "bruh");
+        drawTextWithFlags(optionX + 64, optionY + 8, 0.5f, 0.5f, 0.5f, C2D_Color32(0, 0, 0, 255), C2D_AlignCenter, dialogueSelectGameOption(i));
         optionY += 32.0f;
         optionY += availableY / 2;
 
         if (levelData->selectedOption == i) {
             // get the hand.
             float targetY = optionY - optionHeights;
-            displayImage("romfs:/textures/spr_m1_3_cursor_0.t3x", optionX - 32, targetY);
+            displayImage("romfs:/textures/spr_m1_3_cursor_0.t3x", optionX - 20, targetY + 8);
         }
     }
-
-    // draw a background for bottom
-    displayTiledImage("romfs:/textures/bg_5_0.t3x", 0, 0, SCREEN_WIDTH_BOTTOM, SCREEN_HEIGHT_BOTTOM, levelData->offsetX, levelData->offsetY);
 }
 
 static void dialogueSelectHandleSelect(GameSceneData* data) {
@@ -136,6 +136,7 @@ static void dialogueSelectHandleInput(GameSceneData* data, const InputState* inp
     if (levelData == NULL) return;
 
     if (!levelData->success && data->isInGame) {  // Check if game is still running
+        // Handle keyboard/button input
         if (input->kDown & (KEY_A)) {
             dialogueSelectHandleSelect(data);
         }
@@ -146,6 +147,33 @@ static void dialogueSelectHandleInput(GameSceneData* data, const InputState* inp
         } else if (input->kDown & (KEY_DUP | KEY_UP)) {
             levelData->selectedOption = (levelData->selectedOption + 4 - 1) % 4;
             playWavLayered("romfs:/sounds/se_cursor.wav");
+        }
+
+        // Handle touch input
+        if (input->kDown & KEY_TOUCH) {
+            float optionX = (SCREEN_WIDTH_BOTTOM / 2) - 64.0f;
+            float optionHeights = (SCREEN_HEIGHT_BOTTOM - 40) / 4;
+            float optionY = 20.0f;
+
+            // Check each option's touch area
+            for (int i = 0; i < 4; i++) {
+                float availableY = optionHeights - 32.0f;
+                optionY += availableY / 2;
+
+                // Check if touch is within option bounds
+                if (input->touch.px >= optionX && input->touch.px <= optionX + 128.0f &&
+                    input->touch.py >= optionY && input->touch.py <= optionY + 32.0f) {
+                    if (levelData->selectedOption != i) {
+                        levelData->selectedOption = i;
+                        playWavLayered("romfs:/sounds/se_cursor.wav");
+                    }
+                    dialogueSelectHandleSelect(data);
+                    break;
+                }
+
+                optionY += 32.0f;
+                optionY += availableY / 2;
+            }
         }
     }
 }
