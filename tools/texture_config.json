@@ -124,6 +124,10 @@
       "width": 64,
       "height": 64
     },
+    "bg_5_0": {
+      "width": 64,
+      "height": 64
+    },
     "spr_title_0": {
       "width": 256,
       "height": 128
@@ -227,6 +231,28 @@
     "spr_m1_2_bankihead_0": {
       "width": 64,
       "height": 64
+    },
+    "spr_m1_3_banki_0": {
+      "width": 512,
+      "height": 512,
+      "alignment": "center"
+    },
+    "spr_m1_3_banki_1": {
+      "width": 512,
+      "height": 512,
+      "alignment": "center"
+    },
+    "spr_m1_3_cursor_0": {
+      "width": 32,
+      "height": 32
+    },
+    "spr_m1_3_maru_0": {
+      "width": 256,
+      "height": 256
+    },
+    "spr_m1_3_ui_0": {
+      "width": 128,
+      "height": 32
     }
   }
 }

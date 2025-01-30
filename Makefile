@@ -32,7 +32,7 @@ APP_AUTHOR      := Alex4386
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations \
+CFLAGS	:=	-g -Wall -Og -ggdb -mword-relocations \
 			-ffunction-sections \
 			$(ARCH)
 
@@ -104,10 +104,13 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) clean all convert_textures convert_sounds
+.PHONY: $(BUILD) clean all codeonly convert_textures convert_sounds
 
 #---------------------------------------------------------------------------------
 all: convert_textures convert_sounds $(BUILD)
+
+#---------------------------------------------------------------------------------
+codeonly: $(BUILD)
 
 #---------------------------------------------------------------------------------
 convert_textures:

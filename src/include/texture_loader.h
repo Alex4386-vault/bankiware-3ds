@@ -6,6 +6,7 @@
 #include <citro2d.h>
 #include <stdio.h>
 
+// Constants
 #define MAX_TEXTURES 64
 #define MAX_TEXTURE_NAME 64
 
@@ -13,6 +14,7 @@ typedef struct {
     C3D_Tex texture;
     u16 width;
     u16 height;
+    u64 last_used;    // Timestamp of last usage
 } GameTexture;
 
 typedef struct {
@@ -46,5 +48,9 @@ Result displayImageWithScaling(const char* path, float x, float y, C2D_ImageTint
 // Legacy functions for compatibility
 Result loadTextureFromFile(const char* path, GameTexture* tex);
 void freeTexture(GameTexture* tex);
+
+// Texture management functions
+Result cleanupUnusedTextures(u64 older_than);
+void updateTextureTimestamp(GameTexture* tex);
 
 #endif // TEXTURE_LOADER_H

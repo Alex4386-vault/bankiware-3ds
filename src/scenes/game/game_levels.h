@@ -9,6 +9,7 @@
 // Level declarations
 extern const GameLevel LaserBeamGame;
 extern const GameLevel ExampleStubGame;
+extern const GameLevel DialogueSelectGame;
 extern const GameLevel CatchMeGame;
 
 // Level management functions

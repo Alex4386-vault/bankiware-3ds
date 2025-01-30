@@ -16,6 +16,8 @@ typedef struct ExampleStubData {
 } ExampleStubData;
 
 static void exampleStubReset(ExampleStubData* levelData) {
+    if (levelData == NULL) return;
+
     levelData->gameOver = false;
     levelData->success = false;
     levelData->offsetX = 0.0f;
@@ -24,15 +26,22 @@ static void exampleStubReset(ExampleStubData* levelData) {
 
 static void exampleStubInit(GameSceneData* data) {
     ExampleStubData* levelData = malloc(sizeof(ExampleStubData));
+    if (levelData == NULL) {
+        panicEverything("Failed to allocate memory for ExampleStubData");
+        return;
+    }
+
     exampleStubReset(levelData);
     data->currentLevelData = levelData;
     
     data->gameLeftTime = data->gameSessionTime;
+    playWavFromRomfs("romfs:/sounds/bgm_test.wav");
 }
 
 static void exampleStubUpdate(GameSceneData* data, float deltaTime) {
     ExampleStubData* levelData = (ExampleStubData*)data->currentLevelData;
-    
+    if (levelData == NULL) return;
+
     // Update background scroll
     levelData->offsetX += SCROLL_SPEED;
     levelData->offsetY += SCROLL_SPEED;
@@ -64,6 +73,7 @@ static void exampleStubDraw(GameSceneData* data, const GraphicsContext* context)
 
 static void exampleStubHandleInput(GameSceneData* data, const InputState* input) {
     ExampleStubData* levelData = (ExampleStubData*)data->currentLevelData;
+    if (levelData == NULL) return;
     
     if (!levelData->gameOver) {
         if (input->kDown & (KEY_A)) {

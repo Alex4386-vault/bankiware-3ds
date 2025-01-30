@@ -198,10 +198,14 @@ static void pregameDialogueDestroy(Scene* scene) {
 
 Scene* createPregameDialogueScene() {
     Scene* scene = (Scene*)malloc(sizeof(Scene));
-    if (!scene) return NULL;
+    if (!scene) {
+        panicEverything("Failed to allocate memory for pregame dialogue scene");
+        return NULL;
+    }
     
     PregameDialogueData* data = (PregameDialogueData*)malloc(sizeof(PregameDialogueData));
     if (!data) {
+        panicEverything("Failed to allocate memory for pregame dialogue data");
         free(scene);
         return NULL;
     }

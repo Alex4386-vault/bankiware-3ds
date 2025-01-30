@@ -24,5 +24,6 @@ typedef struct {
 } InputState;
 
 float frand();
+void panicEverything(const char* message);
 
 #endif // SCENES_COMMON_H

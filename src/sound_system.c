@@ -65,13 +65,19 @@ Result soundInit(void) {
     setupChannel(0);
     setupChannel(1);
 
-    // Initialize wave buffers
+    // Initialize wave buffers with proper validation
     memset(&waveBuf0, 0, sizeof(ndspWaveBuf));
     memset(&waveBuf1, 0, sizeof(ndspWaveBuf));
-    waveBuf0.data_vaddr = audioBuffer;
-    waveBuf0.status = NDSP_WBUF_FREE;
-    waveBuf1.data_vaddr = audioBuffer2;
-    waveBuf1.status = NDSP_WBUF_FREE;
+    
+    if (audioBuffer) {
+        waveBuf0.data_vaddr = audioBuffer;
+        waveBuf0.status = NDSP_WBUF_FREE;
+    }
+    
+    if (audioBuffer2) {
+        waveBuf1.data_vaddr = audioBuffer2;
+        waveBuf1.status = NDSP_WBUF_FREE;
+    }
 
     soundInitialized = true;
     hasQueuedAudio = false;
@@ -188,13 +194,15 @@ Result playWavFromRomfsRange(const char* filename, u32 startSample, u32 numSampl
     Result rc = loadWavFile(filename, audioBuffer, &read, &bits_per_sample, &num_channels, startSample, numSamples);
     if (R_FAILED(rc)) return rc;
 
-    // Setup and play audio
-    waveBuf0.data_vaddr = audioBuffer;
-    waveBuf0.nsamples = read / (bits_per_sample >> 3) / num_channels;
-    waveBuf0.looping = false;
-    waveBuf0.status = NDSP_WBUF_FREE;
-    DSP_FlushDataCache(audioBuffer, read);
-    ndspChnWaveBufAdd(0, &waveBuf0);
+    // Setup and play audio with validation
+    if (audioBuffer && read > 0) {
+        waveBuf0.data_vaddr = audioBuffer;
+        waveBuf0.nsamples = read / (bits_per_sample >> 3) / num_channels;
+        waveBuf0.looping = false;
+        waveBuf0.status = NDSP_WBUF_FREE;
+        DSP_FlushDataCache(audioBuffer, read);
+        ndspChnWaveBufAdd(0, &waveBuf0);
+    }
 
     printf("Playing %lu samples from offset %lu\n", 
            (unsigned long)waveBuf0.nsamples, 
@@ -256,24 +264,36 @@ Result playWavFromRomfsLoop(const char* filename) {
     return 0;
 }
 
-void stopAudio(void) {
-    if (!soundInitialized) return;
+void stopAudioChannel(int channel) {
+    if (!soundInitialized || channel < 0 || channel > 1) return;
 
-    // Only stop if something is actually playing
-    if (ndspChnIsPlaying(0)) {
-        ndspChnWaveBufClear(0);
-        while (ndspChnIsPlaying(0)) {
+    // Clear and wait for channel to finish
+    if (ndspChnIsPlaying(channel)) {
+        ndspChnWaveBufClear(channel);
+        while (ndspChnIsPlaying(channel)) {
             svcSleepThread(100000); // 0.1ms
         }
     }
     
-    // Reset and reinitialize channel with proper settings
-    setupChannel(0);
+    // Reset channel
+    setupChannel(channel);
     
-    // Reset wave buffer state
-    waveBuf0.status = NDSP_WBUF_FREE;
-    waveBuf0.looping = false;
-    hasQueuedAudio = false;
+    // Reset appropriate wave buffer
+    ndspWaveBuf* wb = (channel == 0) ? &waveBuf0 : &waveBuf1;
+    memset(wb, 0, sizeof(ndspWaveBuf));
+    wb->status = NDSP_WBUF_FREE;
+
+    // Clear queued audio if stopping channel 0
+    if (channel == 0) {
+        hasQueuedAudio = false;
+    }
+}
+
+void stopAudio(void) {
+    if (!soundInitialized) return;
+    
+    stopAudioChannel(0);
+    stopAudioChannel(1);
 }
 
 void soundUpdate(void) {
@@ -296,18 +316,23 @@ void soundUpdate(void) {
 Result playWavLayered(const char* filename) {
     if (!soundInitialized) return -1;
 
+    // Stop previous layered sound and clean up
+    stopAudioChannel(1);
+
     size_t read;
     u16 bits_per_sample, num_channels;
     Result rc = loadWavFile(filename, audioBuffer2, &read, &bits_per_sample, &num_channels, 0, 0);
     if (R_FAILED(rc)) return rc;
 
     // Setup and play audio on channel 1
-    waveBuf1.data_vaddr = audioBuffer2;
-    waveBuf1.nsamples = read / (bits_per_sample >> 3) / num_channels;
-    waveBuf1.looping = false;
-    waveBuf1.status = NDSP_WBUF_FREE;
-    DSP_FlushDataCache(audioBuffer2, read);
-    ndspChnWaveBufAdd(1, &waveBuf1);
+    if (audioBuffer2) {
+        waveBuf1.data_vaddr = audioBuffer2;
+        waveBuf1.nsamples = read / (bits_per_sample >> 3) / num_channels;
+        waveBuf1.looping = false;
+        waveBuf1.status = NDSP_WBUF_FREE;
+        DSP_FlushDataCache(audioBuffer2, read);
+        ndspChnWaveBufAdd(1, &waveBuf1);
+    }
 
     printf("Playing layered sound: %lu samples\n", (unsigned long)waveBuf1.nsamples);
     return 0;

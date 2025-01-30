@@ -150,18 +150,22 @@ static void titleDraw(Scene* scene, const GraphicsContext* context) {
                           data->offsetX, data->offsetY);
 
     if (R_FAILED(rc)) {
-        printf("Failed to display background image: %08lX\n", rc);
+        panicEverything("Failed to display background image");
         return;
     }
 
     // Draw the title image on top screen
     rc = displayImage("romfs:/textures/spr_title_0.t3x", 10, 0);
     if (R_FAILED(rc)) {
-        printf("Failed to display title image: %08lX\n", rc);
+        panicEverything("Failed to display title image");
         return;
     }
 
     rc = displayImage("romfs:/textures/spr_titlebanki_0.t3x", 270, 112);
+    if (R_FAILED(rc)) {
+        panicEverything("Failed to display title banki image");
+        return;
+    }
 
     // Draw on bottom screen
     C2D_SceneBegin(context->bottom);
@@ -174,6 +178,7 @@ static void titleDraw(Scene* scene, const GraphicsContext* context) {
                              data->offsetX, data->offsetY);
 
         if (R_FAILED(rc)) {
+            panicEverything("Failed to display bottom screen background");
             return;
         }
 
@@ -221,10 +226,14 @@ static void titleDestroy(Scene* scene) {
 
 Scene* createTitleScene(void) {
     Scene* scene = (Scene*)malloc(sizeof(Scene));
-    if (!scene) return NULL;
+    if (!scene) {
+        panicEverything("Failed to allocate memory for title scene");
+        return NULL;
+    }
 
     TitleSceneData* data = (TitleSceneData*)malloc(sizeof(TitleSceneData));
     if (!data) {
+        panicEverything("Failed to allocate memory for title scene data");
         free(scene);
         return NULL;
     }

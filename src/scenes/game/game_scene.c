@@ -49,11 +49,14 @@ static void gameEnterHandler(Scene *scene) {
     
     // Initialize the current level
     GameLevel* currentLevel = getGameLevel(data->currentLevel);
-    if (currentLevel) {
-        data->currentLevelObj = currentLevel;
-        if (currentLevel->init) {
-            currentLevel->init(data);
-        }
+    if (!currentLevel) {
+        panicEverything("Failed to load game level");
+        return;
+    }
+    
+    data->currentLevelObj = currentLevel;
+    if (currentLevel->init) {
+        currentLevel->init(data);
     }
 
     // TODO: When it speeds up, update it accordingly
@@ -114,6 +117,8 @@ static void gameLeaveHandler(Scene *scene) {
 
 static void gameUpdate(Scene* scene, float deltaTime) {
     GameSceneData* data = (GameSceneData*)scene->data;
+    if (data == NULL) return;
+
     data->elapsedTime += deltaTime;
     data->bounceTimer += deltaTime;
 
@@ -149,23 +154,26 @@ static void gameUpdate(Scene* scene, float deltaTime) {
     }
 
     if (data->isInGame) {
-
         if (data->gameLeftTime > 0.0f) {
             data->gameLeftTime -= deltaTime;
             if (data->gameLeftTime <= 0.0f) {
                 data->gameLeftTime = 0.0f;
                 gameLeaveHandler(scene);
-            } else {
-                // Update current level
-                GameLevel* currentLevel = getGameLevel(data->currentLevel);
-                if (currentLevel && currentLevel->update) {
-                    currentLevel->update(data, deltaTime);
-                }
+                return;
+            }
+            
+            // Update current level
+            GameLevel* currentLevel = getGameLevel(data->currentLevel);
+            if (currentLevel && currentLevel->update) {
+                currentLevel->update(data, deltaTime);
+            }
                 
-                // Check for immediate quit request
-                if (currentLevel && currentLevel->requestingQuit && currentLevel->requestingQuit(data)) {
+            // Check for immediate quit request
+            if (currentLevel && currentLevel->requestingQuit != NULL) {
+                if (currentLevel->requestingQuit(data)) {
                     // Success state should already be set by the level
                     gameLeaveHandler(scene);
+                    return;
                 }
             }
         }
@@ -358,7 +366,7 @@ static void gameDraw(Scene* scene, const GraphicsContext* context) {
 
                               
         if (R_FAILED(rc)) {
-            printf("Failed to display background image: %08lX\n", rc);
+            panicEverything("Failed to display game background");
             return;
         }
         // draw wakakage
@@ -504,10 +512,14 @@ static void gameDestroy(Scene* scene) {
 
 Scene* createGameScene(void) {
     Scene* scene = (Scene*)malloc(sizeof(Scene));
-    if (!scene) return NULL;
+    if (!scene) {
+        panicEverything("Failed to allocate memory for game scene");
+        return NULL;
+    }
     
     GameSceneData* data = (GameSceneData*)malloc(sizeof(GameSceneData));
     if (!data) {
+        panicEverything("Failed to allocate memory for game scene data");
         free(scene);
         return NULL;
     }

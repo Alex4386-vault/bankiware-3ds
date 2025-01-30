@@ -76,10 +76,14 @@ static void gameoverDestroy(Scene* scene) {
 
 Scene* createGameoverScene(void) {
     Scene* scene = (Scene*)malloc(sizeof(Scene));
-    if (!scene) return NULL;
+    if (!scene) {
+        panicEverything("Failed to allocate memory for gameover scene");
+        return NULL;
+    }
     
     GameoverSceneData* data = (GameoverSceneData*)malloc(sizeof(GameoverSceneData));
     if (!data) {
+        panicEverything("Failed to allocate memory for gameover scene data");
         free(scene);
         return NULL;
     }

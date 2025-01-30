@@ -98,10 +98,15 @@ static void catchMeReset(CatchMeData* levelData) {
 
 static void catchMeInit(GameSceneData* data) {
     CatchMeData* levelData = malloc(sizeof(CatchMeData));
+    if (levelData == NULL) {
+        panicEverything("Failed to allocate memory for CatchMeData");
+        return;
+    }
     catchMeReset(levelData);
     data->currentLevelData = levelData;
     
     data->gameLeftTime = data->gameSessionTime;
+    playWavFromRomfs("romfs:/sounds/bgm_test.wav");
 }
 
 static void catchMeUpdate(GameSceneData* data, float deltaTime) {
@@ -168,7 +173,7 @@ static void catchMeDraw(GameSceneData* data, const GraphicsContext* context) {
         if (levelData->success) {
             displayImageWithScaling(TEXTURE_PATH_BANKIFULLBODY, levelData->playerX, SCREEN_HEIGHT_BOTTOM - (BANKI_FULLHEIGHT * (1.5f * BANKI_FULLBODY_MULTIPLIER)), NULL, levelData->lastPressedDirection * BANKI_FULLBODY_MULTIPLIER, 1.0f * BANKI_FULLBODY_MULTIPLIER);
         } else {
-            displayImageWithScaling(TEXTURE_PATH_BANKIBODY, levelData->playerX, SCREEN_HEIGHT_BOTTOM - BANKI_HEIGHT, NULL, levelData->lastPressedDirection, 1.0f);
+            displayImageWithScaling(TEXTURE_PATH_BANKIBODY, levelData->playerX - ((BANKI_BODY_MULTIPLIER - 1.0f) * BANKI_WIDTH), SCREEN_HEIGHT_BOTTOM - (BANKI_HEIGHT * 0.9), NULL, levelData->lastPressedDirection * BANKI_BODY_MULTIPLIER, 1.0f * BANKI_BODY_MULTIPLIER);
         }
     } else {
         float drawDropY = levelData->dropY - (SCREEN_HEIGHT + OFFSCREEN_HEIGHT);

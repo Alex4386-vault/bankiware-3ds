@@ -114,7 +114,9 @@ GameTexture* getTextureFromStore(const char* name) {
 
     for (int i = 0; i < g_textureStore.count; i++) {
         if (strcmp(g_textureStore.names[i], name) == 0) {
-            return &g_textureStore.textures[i];
+            GameTexture* tex = &g_textureStore.textures[i];
+            updateTextureTimestamp(tex);
+            return tex;
         }
     }
 
@@ -260,13 +262,42 @@ Result displayTiledImage(const char* path, float x, float y, float width, float 
     return 0;
 }
 
+void updateTextureTimestamp(GameTexture* tex) {
+    if (tex) {
+        tex->last_used = osGetTime();
+    }
+}
+
+Result cleanupUnusedTextures(u64 older_than) {
+    u64 current_time = osGetTime();
+    int cleaned = 0;
+
+    for (int i = 0; i < g_textureStore.count; i++) {
+        if ((current_time - g_textureStore.textures[i].last_used) > older_than) {
+            freeTexture(&g_textureStore.textures[i]);
+            
+            // Move remaining textures up
+            for (int j = i; j < g_textureStore.count - 1; j++) {
+                g_textureStore.textures[j] = g_textureStore.textures[j + 1];
+                strncpy(g_textureStore.names[j], g_textureStore.names[j + 1], MAX_TEXTURE_NAME - 1);
+                g_textureStore.names[j][MAX_TEXTURE_NAME - 1] = '\0';
+            }
+            
+            g_textureStore.count--;
+            i--; // Recheck this index since we moved a texture here
+            cleaned++;
+        }
+    }
+
+    printf("Cleaned up %d unused textures\n", cleaned);
+    return 0;
+}
+
 Result loadTextureFromFile(const char* path, GameTexture* tex) {
     if (!path || !tex) {
         printf("Invalid parameters\n");
         return -1;
     }
-
-    printf("Loading texture: %s\n", path);
 
     FILE* file = fopen(path, "rb");
     if (!file) {
@@ -290,7 +321,6 @@ Result loadTextureFromFile(const char* path, GameTexture* tex) {
     // Read entire file to buffer
     void* buffer = malloc(size);
     if (!buffer) {
-        printf("Failed to allocate memory for file: %zu bytes\n", size);
         fclose(file);
         return -4;
     }
@@ -325,9 +355,10 @@ Result loadTextureFromFile(const char* path, GameTexture* tex) {
         return -7;
     }
 
-    // Store dimensions
+    // Store dimensions and initialize timestamp
     tex->width = texture->width;
     tex->height = texture->height;
+    updateTextureTimestamp(tex);
 
     printf("Raw texture dimensions: %dx%d\n", texture->width, texture->height);
     printf("Power-of-2 check: width %s, height %s\n",

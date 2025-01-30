@@ -30,6 +30,9 @@ void soundUpdate(void);
 // Stop currently playing audio
 void stopAudio(void);
 
+// Stop audio on a specific channel
+void stopAudioChannel(int channel);
+
 // Play WAV file on secondary channel without stopping current audio
 Result playWavLayered(const char* filename);
 
