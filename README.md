@@ -6,20 +6,38 @@ This is a homebrew application for running bankiware, __a game by [`paradot`](ht
 
 ## Prerequisites
 1. Download [Bankiware](https://para-dot.itch.io/bankiware) from the itch.io page.
-2. Download **Unity for 3DS** from "your personal archive" or "use the search engine" to find it.
-   - I will **NOT** provide a link to the Unity for 3DS download page., as it is against the [Nintendo's Developer NDA](https://developer.nintendo.com/group/development/nda) and is considered as a confidential information specified in [this notice (NDID login Required)](https://developer.nintendo.com/group/development/home/announcements?articleId=311774554).  
-   - If you have signed up the NDID and signed NDA when Nintendo 3DS indie development was available, Good luck finding it!
-3. Install [UndertaleModTool](https://github.com/UnderminersTeam/UndertaleModTool) to unpack the assets
+2. Install [UndertaleModTool](https://github.com/UnderminersTeam/UndertaleModTool) to unpack the assets
+3. Download [DevkitPro](https://devkitpro.org/wiki/Getting_Started) to setup the Development Environment.
 4. Install [ffmpeg](https://ffmpeg.org/download.html) to convert the audio files to the correct format.
+   Supposing you are using Debian-based system:  
+   ```bash
+   sudo apt install ffmpeg
+   ```
+5. Install [ImageMagick](https://imagemagick.org/script/download.php) to convert the images to the correct format.
+   Supposing you are using Debian-based system:  
+   ```bash
+   sudo apt install imagemagick
+   ```
+6. For Loading development configuration, Install [jq](https://stedolan.github.io/jq/download/) to parse the JSON files.
+   Supposing you are using Debian-based system:  
+   ```bash
+   sudo apt install jq
+   ```
+7. Also, Install [GNU Make](https://www.gnu.org/software/make/) to run the Makefile.
+   Supposing you are using Debian-based system:  
+   ```bash
+   sudo apt install base-devel
+   ```
 
 ## Unpacking assets
 1. Install `7z` or equivalent on your system to unpack the `Game.exe` executable (Right-Click, `Open Inside`).
 2. Extract all of the contents into a folder.
 3. Open `UndertaleModTool` and open the `data.win` file.
-4. Run `Scripts` > `Resource Unpackers` > `ExportAllSounds.csx` to export all of the sounds. (If the script asks if you want to export `"external" ogg sounds`, click `No`)
-5. Copy `Exported_Sounds/*.wav` and `*.ogg` files from the folder to `assets/audio` folder.
+4. Run `Scripts` > `Resource Unpackers` > `ExportAllSounds.csx` to export all of the sounds. (If the script asks if you want to export `"external" ogg sounds`, click `Yes`)
+5. Copy `Exported_Sounds/` folder to root of this repository.
 6. Run `Scripts` > `Resource Unpackers` > `ExportAllTexturesGrouped.csx` to export all of the Textures and Sprites.
-7. Copy `Exported_Textures/*` folders to `assets/textures` folder.
+7. Copy `Exported_Textures/` folder to the root of this repository.
+
 
 ## FAQ
 1. **Why don't you provide unpacked resources?**
