@@ -102,36 +102,37 @@ static void gameLeaveHandler(Scene *scene) {
 
     data->lastGameState = GAME_UNDEFINED;
     
-    // Set up next level timings
-    if (data->currentLevel < 10) {
-        data->shouldIncreaseLevelAt = 1.8f + 0.5f;
-        data->shouldEnterGameAt = 1.8f + 2.0f;
-
-        // if the levels are 3, 6 we need to speed up
-        if (data->currentLevel == 3 || data->currentLevel == 6) {
-            data->gameSessionTime -= 0.5f;
-
-            float speedUpTime = 3.5f;
-
-            // also we play speed up sound
-            data->shouldIncreaseLevelAt += speedUpTime;
-            data->shouldEnterGameAt += speedUpTime;
-
-            data->showSpeedUpAt = 1.8f;
-            data->showSpeedUpTimer = 1.8f + speedUpTime;
-
-            queueWavFromRomfsRange("romfs:/sounds/bgm_jingleSpeedUp.wav", 0, SECONDS_TO_SAMPLES(speedUpTime));
-        }
-    } else {
-        // we are now entering the boss stage
-
-    }
-    
     // Check for game over
     if (data->remainingLife <= 0) {
         data->isComplete = true;
         queueWavFromRomfs("romfs:/sounds/bgm_gameover.wav");
     } else {
+        // Set up next level timings
+        if (data->currentLevel < 10) {
+            data->shouldIncreaseLevelAt = 1.8f + 0.5f;
+            data->shouldEnterGameAt = 1.8f + 2.0f;
+
+            // if the levels are 3, 6 we need to speed up
+            if (data->currentLevel == 3 || data->currentLevel == 6) {
+                data->gameSessionTime -= 0.5f;
+
+                float speedUpTime = 3.5f;
+
+                // also we play speed up sound
+                data->shouldIncreaseLevelAt += speedUpTime;
+                data->shouldEnterGameAt += speedUpTime;
+
+                data->showSpeedUpAt = 1.8f;
+                data->showSpeedUpTimer = 1.8f + speedUpTime;
+
+                queueWavFromRomfsRange("romfs:/sounds/bgm_jingleSpeedUp.wav", 0, SECONDS_TO_SAMPLES(speedUpTime));
+            }
+        } else {
+            // we are now entering the boss stage
+
+        }
+
+        
         queueWavFromRomfs("romfs:/sounds/bgm_jingleNext.wav");
     }
 }

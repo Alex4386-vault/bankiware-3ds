@@ -277,6 +277,20 @@
     "spr_speedup_0": {
       "width": 256,
       "height": 64
+    },
+    "spr_m1_5_banki_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_5_banki_1": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_5_black_0": {
+      "width": 512,
+      "height": 512,
+      "alignment": "center",
+      "scaleRatio": "height"
     }
   }
 }

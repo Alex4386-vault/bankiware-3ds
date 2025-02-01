@@ -9,6 +9,7 @@ static GameLevel* gameLevels[] = {
     (GameLevel*)&CatchMeGame,     // Cast to GameLevel* to match array type
     (GameLevel*)&DialogueSelectGame,  // Cast to GameLevel* to match array type
     (GameLevel*)&PizzaSlicingGame,   // Cast to GameLevel* to match array type
+    (GameLevel*)&SearchLightGame,    // Cast to GameLevel* to match array type
     NULL  // Sentinel value
 };
 
