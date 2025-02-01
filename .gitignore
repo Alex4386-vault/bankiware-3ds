@@ -16,3 +16,6 @@
 
 # Build your own romfs!
 /romfs
+
+# No macOS Stuff!
+.DS_Store
