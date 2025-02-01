@@ -1,4 +1,5 @@
 #include "include/texture_loader.h"
+#include "include/text_renderer.h"
 #include <citro2d.h>
 #include <stdlib.h>
 #include <string.h>
@@ -130,8 +131,7 @@ void freeTextureStore(void) {
     }
     memset(&g_textureStore, 0, sizeof(TextureStore));
 }
-
-Result displayImageWithScaling(const char* path, float x, float y, C2D_ImageTint *tint, float scaleX, float scaleY) {
+Result displayImageWithScalingAndRotation(const char* path, float x, float y, C2D_ImageTint *tint, float scaleX, float scaleY, float rotation) {
     if (!path) {
         printf("Invalid path for displayImage\n");
         return -1;
@@ -164,7 +164,7 @@ Result displayImageWithScaling(const char* path, float x, float y, C2D_ImageTint
         }
     }
 
-    // Set up subtexture
+    // Set up subtexture (height and width swapped due to 3DS screen orientation)
     Tex3DS_SubTexture subtex = {
         .width = tex->height,
         .height = tex->width,
@@ -181,11 +181,20 @@ Result displayImageWithScaling(const char* path, float x, float y, C2D_ImageTint
     };
 
     // Draw the image with proper scaling
-    C2D_DrawImageAt(image, x, y, 0.0f, tint, scaleX, scaleY);
+    if (isnan(rotation)) {
+        C2D_DrawImageAt(image, x, y, 0.0f, tint, scaleX, scaleY);
+    } else {
+        float offsetX = (tex->height * scaleX) / 2.0f;
+        float offsetY = (tex->width * scaleY) / 2.0f;
+        C2D_DrawImageAtRotated(image, x + offsetX, y + offsetY, 0.0f, rotation, tint, scaleX, scaleY);
+    }
 
     return 0;
 }
 
+Result displayImageWithScaling(const char* path, float x, float y, C2D_ImageTint *tint, float scaleX, float scaleY) {
+    return displayImageWithScalingAndRotation(path, x, y, tint, scaleX, scaleY, NAN);
+}
 
 Result displayImage(const char* path, float x, float y) {
     return displayImageWithScaling(path, x, y, NULL, 1.0f, 1.0f);

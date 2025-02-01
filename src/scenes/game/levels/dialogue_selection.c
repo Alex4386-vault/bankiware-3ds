@@ -39,22 +39,14 @@ static void dialogueSelectInit(GameSceneData* data) {
     data->currentLevelData = levelData;
     
     data->gameLeftTime = data->gameSessionTime;
-    playWavFromRomfs("romfs:/sounds/bgm_test.wav");
+    playWavFromRomfs("romfs:/sounds/bgm_microgame2.wav");
 }
 
 static void dialogueSelectUpdate(GameSceneData* data, float deltaTime) {
     DialogueSelectGameData* levelData = (DialogueSelectGameData*)data->currentLevelData;
     if (levelData == NULL) return;
 
-    // Update background scroll
-    levelData->offsetX += SCROLL_SPEED;
-    levelData->offsetY += SCROLL_SPEED;
-
-    // Wrap offsets to match texture size
-    if (levelData->offsetX <= -64.0f) levelData->offsetX = 0.0f;
-    if (levelData->offsetY <= -64.0f) levelData->offsetY = 0.0f;
-    if (levelData->offsetX >= 64.0f) levelData->offsetX = 0.0f;
-    if (levelData->offsetY >= 64.0f) levelData->offsetY = 0.0f;
+    UPDATE_BACKGROUND_SCROLL(levelData, 64.0f, SCROLL_SPEED);
 }
 
 static char* dialogueSelectGameOption(int option) {
@@ -80,8 +72,15 @@ static void dialogueSelectDraw(GameSceneData* data, const GraphicsContext* conte
     C2D_SceneBegin(context->top);
     C2D_TargetClear(context->top, C2D_Color32(0, 0, 0, 255));
 
+    char *texturePath;
+    if (data->lastGameState != GAME_SUCCESS) {
+        texturePath = "romfs:/textures/bg_5_0.t3x";
+    } else {
+        texturePath = "romfs:/textures/bg_6_0.t3x";
+    }
+
     // draw a background
-    displayTiledImage("romfs:/textures/bg_5_0.t3x", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, levelData->offsetX, levelData->offsetY);
+    displayTiledImage(texturePath, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, levelData->offsetX, levelData->offsetY);
 
     if (levelData->success) {
         displayImageWithScaling("romfs:/textures/spr_m1_3_banki_1.t3x", SCREEN_WIDTH / 2 - BANKI_OFFSET, SCREEN_HEIGHT / 2 - BANKI_OFFSET, NULL, BANKI_SCALE, BANKI_SCALE);
@@ -126,7 +125,7 @@ static void dialogueSelectHandleSelect(GameSceneData* data) {
         levelData->success = true;
         data->lastGameState = GAME_SUCCESS;
 
-        playWavLayered("romfs:/sounds/se_seikai.wav");
+        playWavLayered("romfs:/sounds/se_rappa.wav");
     }
 
 }

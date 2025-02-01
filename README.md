@@ -13,20 +13,10 @@ This is a homebrew application for running bankiware, __a game by [`paradot`](ht
    ```bash
    sudo apt install ffmpeg
    ```
-5. Install [ImageMagick](https://imagemagick.org/script/download.php) to convert the images to the correct format.
+5. Install [ImageMagick](https://imagemagick.org/script/download.php), [jq](https://stedolan.github.io/jq/download/), [GNU Make](https://www.gnu.org/software/make/), [bc](https://www.gnu.org/software/bc/) to do the preprocessing of the assets.
    Supposing you are using Debian-based system:  
    ```bash
-   sudo apt install imagemagick
-   ```
-6. For Loading development configuration, Install [jq](https://stedolan.github.io/jq/download/) to parse the JSON files.
-   Supposing you are using Debian-based system:  
-   ```bash
-   sudo apt install jq
-   ```
-7. Also, Install [GNU Make](https://www.gnu.org/software/make/) to run the Makefile.
-   Supposing you are using Debian-based system:  
-   ```bash
-   sudo apt install base-devel
+   sudo apt install imagemagick jq build-essential bc
    ```
 
 ## Unpacking assets
@@ -34,7 +24,7 @@ This is a homebrew application for running bankiware, __a game by [`paradot`](ht
 2. Extract all of the contents into a folder.
 3. Open `UndertaleModTool` and open the `data.win` file.
 4. Run `Scripts` > `Resource Unpackers` > `ExportAllSounds.csx` to export all of the sounds. (If the script asks if you want to export `"external" ogg sounds`, click `Yes`)
-5. Copy `Exported_Sounds/` folder to root of this repository.
+5. Copy `Exported_Sounds/`, `External_Sounds` folder to root of this repository.
 6. Run `Scripts` > `Resource Unpackers` > `ExportAllTexturesGrouped.csx` to export all of the Textures and Sprites.
 7. Copy `Exported_Textures/` folder to the root of this repository.
 

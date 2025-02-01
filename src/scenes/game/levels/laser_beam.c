@@ -54,7 +54,7 @@ static void laserBeamGameInit(GameSceneData* data) {
     // Set game session time
     data->gameLeftTime = data->gameSessionTime;
     
-    playWavFromRomfs("romfs:/sounds/bgm_test.wav");
+    playWavFromRomfs("romfs:/sounds/bgm_microgame1.wav");
 }
 
 static void laserBeamGameUpdate(GameSceneData* data, float deltaTime) {

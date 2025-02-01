@@ -128,6 +128,10 @@
       "width": 64,
       "height": 64
     },
+    "bg_6_0": {
+      "width": 64,
+      "height": 64
+    },
     "spr_title_0": {
       "width": 256,
       "height": 128
@@ -253,6 +257,26 @@
     "spr_m1_3_ui_0": {
       "width": 128,
       "height": 32
+    },
+    "spr_m1_4_cutter_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_4_pizza_0": {
+      "width": 256,
+      "height": 256
+    },
+    "spr_m1_4_pizza_1": {
+      "width": 256,
+      "height": 256
+    },
+    "spr_m1_4_clear_0": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_speedup_0": {
+      "width": 256,
+      "height": 64
     }
   }
 }

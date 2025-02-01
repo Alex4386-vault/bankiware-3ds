@@ -38,6 +38,7 @@ static void titleInit(Scene* scene) {
     data->touchActive = false;
     data->isDragging = false;
     data->showDebug = false;
+    data->selectedAction = ACTION_START;
 }
 
 static void doAction(SelectedAction action) {
@@ -48,8 +49,8 @@ static void doAction(SelectedAction action) {
             break;
         }
         case ACTION_EXIT: {
-            svcSleepThread(500000000); // Sleep for 500ms to let sound play
             requestExit();  // Exit is immediate, no transition needed
+            svcSleepThread(500000000); // Sleep for 500ms to let sound play
             break;
         }
         default:
@@ -91,6 +92,11 @@ static void titleHandleInput(Scene* scene, const InputState* input) {
             data->selectedAction = (SelectedAction)((data->selectedAction + ACTION_COUNT - 1) % ACTION_COUNT);
         } else if (input->kDown & KEY_A) {
             doAction(data->selectedAction);
+        } else if (input->kDown & KEY_B) {
+            if (data->selectedAction != ACTION_EXIT) {
+                playWavFromRomfs("romfs:/sounds/se_cursor.wav");
+                data->selectedAction = ACTION_EXIT;
+            }
         }
 
         // Then handle touch input
@@ -166,6 +172,10 @@ static void titleDraw(Scene* scene, const GraphicsContext* context) {
         panicEverything("Failed to display title banki image");
         return;
     }
+
+    drawText(5.0f, SCREEN_HEIGHT - 28.0f, 0.5f, 0.5f, 0.5f, C2D_Color32(0, 0, 0, 255),
+        "© Para Dot., ZUN (Team Shanghai Alice)\n"
+        "Original: https://para-dot.itch.io/bankiware");
 
     // Draw on bottom screen
     C2D_SceneBegin(context->bottom);

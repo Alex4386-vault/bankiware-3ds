@@ -5,6 +5,13 @@
 
 #define AUDIO_SAMPLERATE 22050
 #define SECONDS_TO_SAMPLES(seconds) ((u32)(AUDIO_SAMPLERATE * (seconds)))
+#define MAX_QUEUED_AUDIO 3  // Reduce number of queued items - we only need to queue speedup + next/gameover
+
+typedef struct {
+    u32* buffer;
+    size_t samples;
+    size_t size;
+} QueuedAudio;
 
 // Initialize sound system
 Result soundInit(void);

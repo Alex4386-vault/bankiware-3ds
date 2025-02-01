@@ -52,6 +52,9 @@ typedef struct GameSceneData {
     float shouldIncreaseLevelAt;
     float shouldEnterGameAt;
 
+    float showSpeedUpAt;
+    float showSpeedUpTimer;
+
     void *currentLevelData;
     void *currentLevelObj;
 } GameSceneData;

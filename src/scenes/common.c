@@ -12,5 +12,5 @@ void panicEverything(const char* message) {
     // stop the world for 2 seconds
     svcSleepThread(2 * 1000000000);
 
-    exit(1);
+    // exit(1);
 }

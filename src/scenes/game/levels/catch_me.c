@@ -25,7 +25,7 @@
 #define TEXTURE_PATH_BANKIBODY "romfs:/textures/spr_m1_2_bankibody_0.t3x"
 #define TEXTURE_PATH_BANKIFULLBODY "romfs:/textures/spr_m1_2_bankibody_1.t3x"
 
-#define BANKI_FULLBODY_MULTIPLIER 0.7f
+#define BANKI_FULLBODY_MULTIPLIER 0.675f
 #define BANKI_BODY_MULTIPLIER 1.0f
 
 typedef struct CatchMeData {
@@ -62,7 +62,7 @@ static void catchMeCheckPlayerCatch(GameSceneData *data) {
         levelData->success = true;
         data->lastGameState = GAME_SUCCESS;
 
-        playWavLayered("romfs:/sounds/se_seikai.wav");
+        playWavLayered("romfs:/sounds/se_rappa.wav");
     }
 }
 
@@ -73,9 +73,12 @@ static void catchMeTriggerFail(GameSceneData *data) {
     }
 
     levelData->success = false;
-    data->lastGameState = GAME_FAILURE;
 
-    playWavLayered("romfs:/sounds/se_huseikai.wav");
+    if (data->lastGameState == GAME_UNDEFINED) {
+        // the game was not decided, but it is now failed
+        playWavLayered("romfs:/sounds/se_poyon1.wav");
+    }
+    data->lastGameState = GAME_FAILURE;
 }
 
 static void catchMeReset(CatchMeData* levelData) {
@@ -106,7 +109,7 @@ static void catchMeInit(GameSceneData* data) {
     data->currentLevelData = levelData;
     
     data->gameLeftTime = data->gameSessionTime;
-    playWavFromRomfs("romfs:/sounds/bgm_test.wav");
+    playWavFromRomfs("romfs:/sounds/bgm_microgame2.wav");
 }
 
 static void catchMeUpdate(GameSceneData* data, float deltaTime) {

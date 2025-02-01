@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 // Constants
-#define MAX_TEXTURES 64
+#define MAX_TEXTURES 96
 #define MAX_TEXTURE_NAME 64
 
 typedef struct {
@@ -44,6 +44,7 @@ void freeTextureStore(void);
 Result displayImage(const char* path, float x, float y);
 Result displayTiledImage(const char* path, float x, float y, float width, float height, float offsetX, float offsetY);
 Result displayImageWithScaling(const char* path, float x, float y, C2D_ImageTint *tint, float scaleX, float scaleY);
+Result displayImageWithScalingAndRotation(const char* path, float x, float y, C2D_ImageTint *tint, float scaleX, float scaleY, float rotation);
 
 // Legacy functions for compatibility
 Result loadTextureFromFile(const char* path, GameTexture* tex);

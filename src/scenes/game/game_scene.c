@@ -39,6 +39,8 @@ static void gameInit(Scene* scene) {
     data->bounceAnimationTimer = -1.0f;
     data->shouldIncreaseLevelAt = 1.8f + 0.5f;
     data->shouldEnterGameAt = 1.8f + 2.0f;
+    data->showSpeedUpAt = -1.0f;
+    data->showSpeedUpTimer = -1.0f;
     
     playWavFromRomfsRange("romfs:/sounds/bgm_ready.wav", 0, SECONDS_TO_SAMPLES(1.8f));
     queueWavFromRomfsRange("romfs:/sounds/bgm_jingleNext.wav", 0, SECONDS_TO_SAMPLES(2.0f));
@@ -104,6 +106,25 @@ static void gameLeaveHandler(Scene *scene) {
     if (data->currentLevel < 10) {
         data->shouldIncreaseLevelAt = 1.8f + 0.5f;
         data->shouldEnterGameAt = 1.8f + 2.0f;
+
+        // if the levels are 3, 6 we need to speed up
+        if (data->currentLevel == 3 || data->currentLevel == 6) {
+            data->gameSessionTime -= 0.5f;
+
+            float speedUpTime = 3.5f;
+
+            // also we play speed up sound
+            data->shouldIncreaseLevelAt += speedUpTime;
+            data->shouldEnterGameAt += speedUpTime;
+
+            data->showSpeedUpAt = 1.8f;
+            data->showSpeedUpTimer = 1.8f + speedUpTime;
+
+            queueWavFromRomfsRange("romfs:/sounds/bgm_jingleSpeedUp.wav", 0, SECONDS_TO_SAMPLES(speedUpTime));
+        }
+    } else {
+        // we are now entering the boss stage
+
     }
     
     // Check for game over
@@ -205,6 +226,13 @@ static void gameUpdate(Scene* scene, float deltaTime) {
         data->bounceAnimationTimer = -1.0f;
     } else if (data->bounceAnimationTimer >= 0.0f) {
         data->bounceAnimationTimer += deltaTime;
+    }
+
+    if (data->showSpeedUpTimer > 0.0f && data->showSpeedUpAt <= data->elapsedTimeSinceStageScreen) {
+        data->showSpeedUpTimer -= deltaTime;
+        if (data->showSpeedUpTimer <= 0.0f) {
+            data->showSpeedUpTimer = -1.0f;
+        }
     }
 }
 
@@ -405,10 +433,11 @@ static void gameDraw(Scene* scene, const GraphicsContext* context) {
             "State: %s\n"
             "StageTime: %.2f\n"
             "\n"
-            "Press START to exit\n"
+            "Press START to exit to TITLE\n"
             "Press A to reset game Timer\n"
             "B: Idle, X: Fail, Y: Success\n"
-            "Up, Down: Life count\n", data->elapsedTime, data->gameLeftTime, data->remainingLife, bankiState, data->elapsedTimeSinceStageScreen);
+            "Up, Down: Life count\n"
+            "Left, Right: Current Level", data->elapsedTime, data->gameLeftTime, data->remainingLife, bankiState, data->elapsedTimeSinceStageScreen);
             drawText(10.0f, 10.0f, 0.5f, 0.5f, 0.5f, C2D_Color32(255, 255, 255, 255), timeText);
         } else {
             // Draw the tiled background on bottom screen
@@ -418,6 +447,10 @@ static void gameDraw(Scene* scene, const GraphicsContext* context) {
 
             if (R_FAILED(rc)) {
                 return;
+            }
+
+            if (data->showSpeedUpTimer > 0 && data->showSpeedUpAt <= data->elapsedTimeSinceStageScreen) {
+                displayImage("romfs:/textures/spr_speedup_0.t3x", SCREEN_WIDTH_BOTTOM / 2 - 128, SCREEN_HEIGHT_BOTTOM / 2 - 32);
             }
         }
     }
@@ -457,11 +490,17 @@ static void gameHandleInput(Scene* scene, const InputState* input) {
         if (currentLevel && currentLevel->handleInput) {
             currentLevel->handleInput(data, input);
         }
+    } else {
+        // handle debug query if it is not in game
+        if (input->kDown & KEY_SELECT) {
+            data->isDebug = !data->isDebug;
+        }
     }
 
-    if (data->isDebug) {
+    if (data->isDebug && !data->isInGame) {
         if (input->kDown & KEY_START) {
-            requestExit();
+            stopAudio();
+            changeSceneImmediate(SCENE_TITLE);
         }
         if (input->kDown & KEY_A) {
             resetGameTimer(scene);
@@ -491,10 +530,16 @@ static void gameHandleInput(Scene* scene, const InputState* input) {
                 data->remainingLife++;
             }
         }
-    }
-
-    if (input->kDown & KEY_SELECT) {
-        data->isDebug = !data->isDebug;
+        if (input->kDown & (KEY_DLEFT | KEY_LEFT)) {
+            if (data->currentLevel > 1) {
+                data->currentLevel--;
+            }
+        }
+        if (input->kDown & (KEY_DRIGHT | KEY_RIGHT)) {
+            if (data->currentLevel < 10) {
+                data->currentLevel++;
+            }
+        }
     }
 }
 

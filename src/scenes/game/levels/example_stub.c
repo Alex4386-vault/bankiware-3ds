@@ -35,22 +35,14 @@ static void exampleStubInit(GameSceneData* data) {
     data->currentLevelData = levelData;
     
     data->gameLeftTime = data->gameSessionTime;
-    playWavFromRomfs("romfs:/sounds/bgm_test.wav");
+    playWavFromRomfs("romfs:/sounds/bgm_microgame1.wav");
 }
 
 static void exampleStubUpdate(GameSceneData* data, float deltaTime) {
     ExampleStubData* levelData = (ExampleStubData*)data->currentLevelData;
     if (levelData == NULL) return;
 
-    // Update background scroll
-    levelData->offsetX += SCROLL_SPEED;
-    levelData->offsetY += SCROLL_SPEED;
-
-    // Wrap offsets to match texture size
-    if (levelData->offsetX <= -64.0f) levelData->offsetX = 0.0f;
-    if (levelData->offsetY <= -64.0f) levelData->offsetY = 0.0f;
-    if (levelData->offsetX >= 64.0f) levelData->offsetX = 0.0f;
-    if (levelData->offsetY >= 64.0f) levelData->offsetY = 0.0f;
+    UPDATE_BACKGROUND_SCROLL(levelData, 64.0f, SCROLL_SPEED);
 }
 
 static void exampleStubDraw(GameSceneData* data, const GraphicsContext* context) {

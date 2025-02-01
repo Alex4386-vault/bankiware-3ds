@@ -1,5 +1,6 @@
 /Exported_Sounds
-/Exported_Textures
+/Export_Textures
+/External_Sounds
 
 # No compiled binaries!
 /*.3dsx

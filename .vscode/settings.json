@@ -8,6 +8,7 @@
     "citro2d.h": "c",
     "3ds.h": "c",
     "game_level_types.h": "c",
-    "game_levels.h": "c"
+    "game_levels.h": "c",
+    "string.h": "c"
   }
 }
