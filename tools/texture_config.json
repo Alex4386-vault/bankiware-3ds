@@ -254,6 +254,10 @@
       "width": 256,
       "height": 256
     },
+    "spr_m1_3_batu_0": {
+      "width": 256,
+      "height": 256
+    },
     "spr_m1_3_ui_0": {
       "width": 128,
       "height": 32
@@ -335,7 +339,10 @@
     "spr_m1_6_banki_9": {
       "width": 64,
       "height": 64
+    },
+    "spr_m1_7_counter_0": {
+      "width": 128,
+      "height": 128
     }
-    
   }
 }

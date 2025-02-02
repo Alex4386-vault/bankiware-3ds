@@ -86,7 +86,7 @@ static void bounceCatchInit(GameSceneData* data) {
     
     data->gameLeftTime = data->gameSessionTime;
     data->lastGameState = GAME_SUCCESS;
-    playWavFromRomfs("romfs:/sounds/bgm_microgame2.wav");
+    playWavFromRomfs("romfs:/sounds/bgm_microgame1.wav");
 }
 
 static void bounceCatchCheckBounce(GameSceneData* data) {

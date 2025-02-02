@@ -55,7 +55,7 @@ static void searchLightInit(GameSceneData* data) {
     data->currentLevelData = levelData;
     
     data->gameLeftTime = data->gameSessionTime;
-    playWavFromRomfs("romfs:/sounds/bgm_microgame1.wav");
+    playWavFromRomfs("romfs:/sounds/bgm_microgame2.wav");
 }
 
 static void searchLightUpdate(GameSceneData* data, float deltaTime) {

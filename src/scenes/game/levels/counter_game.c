@@ -9,6 +9,7 @@
 
 #define MAX_BANKIS 9
 #define BANKI_SIZE 64
+#define COUNTER_SIZE 128
 #define BANKI_PADDING 10
 
 typedef struct BankiPosition {
@@ -20,6 +21,7 @@ typedef struct CounterGameData {
     bool initialized;
     bool gameOver;
     bool success;
+    bool validationPending;  // Flag to indicate validation is waiting
 
     int totalBankis;         // Random number of bankis to display (1-9)
     int currentInput;        // Player's current input
@@ -27,6 +29,7 @@ typedef struct CounterGameData {
     
     float counterX;          // Counter position X
     float counterY;          // Counter position Y
+    float validationTimer;   // Timer for validation delay
 } CounterGameData;
 
 static void generateRandomBankiPositions(CounterGameData* levelData) {
@@ -65,11 +68,13 @@ static void counterGameReset(CounterGameData* levelData) {
     levelData->gameOver = false;
     levelData->success = false;
     levelData->currentInput = 0;
+    levelData->validationPending = false;
+    levelData->validationTimer = 0.0f;
     levelData->totalBankis = (rand() % 9) + 1;  // Random number between 1-9
     
     // Center the counter
-    levelData->counterX = (SCREEN_WIDTH_BOTTOM - BANKI_SIZE) / 2;
-    levelData->counterY = (SCREEN_HEIGHT_BOTTOM - BANKI_SIZE) / 2;
+    levelData->counterX = (SCREEN_WIDTH_BOTTOM - COUNTER_SIZE) / 2;
+    levelData->counterY = (SCREEN_HEIGHT_BOTTOM - COUNTER_SIZE) / 2;
     
     // Generate random positions for bankis
     generateRandomBankiPositions(levelData);
@@ -93,7 +98,27 @@ static void counterGameUpdate(GameSceneData* data, float deltaTime) {
     CounterGameData* levelData = (CounterGameData*)data->currentLevelData;
     if (levelData == NULL) return;
     
-    // Check win/lose condition
+    // Check validation timer if pending
+    if (levelData->validationPending && !levelData->gameOver) {
+        levelData->validationTimer += deltaTime;
+        if (levelData->validationTimer >= 0.5f) { // 500ms delay
+            levelData->validationPending = false;
+            levelData->gameOver = true;
+            
+            // Validate the input after delay
+            if (levelData->currentInput == levelData->totalBankis) {
+                levelData->success = true;
+                data->lastGameState = GAME_SUCCESS;
+                playWavLayered("romfs:/sounds/se_seikai.wav");
+            } else {
+                levelData->success = false;
+                data->lastGameState = GAME_FAILURE;
+                playWavLayered("romfs:/sounds/se_huseikai.wav");
+            }
+        }
+    }
+    
+    // Check win/lose condition for timeout
     if (data->gameLeftTime <= 0 && !levelData->gameOver) {
         levelData->gameOver = true;
         levelData->success = false;
@@ -116,6 +141,14 @@ static void counterGameDraw(GameSceneData* data, const GraphicsContext* context)
         snprintf(bankiPath, sizeof(bankiPath), "romfs:/textures/spr_m1_6_banki_0.t3x");
         displayImage(bankiPath, levelData->bankiPositions[i].x, levelData->bankiPositions[i].y);
     }
+
+    if (levelData->gameOver || levelData->success) {
+        if (data->lastGameState == GAME_SUCCESS) {        
+            displayImage("romfs:/textures/spr_m1_3_maru_0.t3x", SCREEN_WIDTH / 2 - 128, SCREEN_HEIGHT / 2 - 128);
+        } else if (data->lastGameState == GAME_FAILURE) {
+            displayImage("romfs:/textures/spr_m1_3_batu_0.t3x", SCREEN_WIDTH / 2 - 128, SCREEN_HEIGHT / 2 - 128);
+        }
+    }
     
     // Draw bottom screen - counter
     C2D_SceneBegin(context->bottom);
@@ -127,36 +160,30 @@ static void counterGameDraw(GameSceneData* data, const GraphicsContext* context)
     // Draw current input
     char inputText[8];
     snprintf(inputText, sizeof(inputText), "%d", levelData->currentInput);
-    float textX = levelData->counterX + 20;
-    float textY = levelData->counterY + 20;
+    float textX = levelData->counterX + (COUNTER_SIZE / 2) - 20;
+    float textY = levelData->counterY + (COUNTER_SIZE / 2);
     drawText(textX, textY, 0.0f, 1.0f, 1.0f, C2D_Color32(0, 0, 0, 255), inputText);
 }
 
 static void counterGameHandleInput(GameSceneData* data, const InputState* input) {
     CounterGameData* levelData = (CounterGameData*)data->currentLevelData;
-    if (levelData == NULL || levelData->gameOver) return;
+    if (levelData == NULL || levelData->gameOver || levelData->validationPending) return;
     
     // Handle A button or touch screen input
-    bool inputActivated = (input->kDown & KEY_A) || 
-                         (input->touch.px >= levelData->counterX && 
-                          input->touch.px <= levelData->counterX + BANKI_SIZE &&
-                          input->touch.py >= levelData->counterY &&
-                          input->touch.py <= levelData->counterY + BANKI_SIZE);
+    bool touchInBounds = (input->touch.px >= levelData->counterX &&
+                         input->touch.px <= levelData->counterX + COUNTER_SIZE &&
+                         input->touch.py >= levelData->counterY &&
+                         input->touch.py <= levelData->counterY + COUNTER_SIZE);
+    bool inputActivated = (input->kDown & KEY_A) ||
+                         ((input->kDown & KEY_TOUCH) && touchInBounds);
     
     if (inputActivated) {
         levelData->currentInput++;
         
-        // Check if player counted correctly
-        if (levelData->currentInput == levelData->totalBankis) {
-            levelData->gameOver = true;
-            levelData->success = true;
-            data->lastGameState = GAME_SUCCESS;
-            playWavLayered("romfs:/sounds/se_seikai.wav");
-        } else if (levelData->currentInput > levelData->totalBankis) {
-            levelData->gameOver = true;
-            levelData->success = false;
-            data->lastGameState = GAME_FAILURE;
-            playWavLayered("romfs:/sounds/se_huseikai.wav");
+        // Start validation timer when reaching target number
+        if (levelData->currentInput >= levelData->totalBankis) {
+            levelData->validationPending = true;
+            levelData->validationTimer = 0.0f;
         }
     }
 }
