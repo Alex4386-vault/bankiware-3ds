@@ -124,7 +124,7 @@ static void bounceCatchCheckBounce(GameSceneData* data) {
         levelData->bankiVelocityY = BOUNCE_SPEED;
         levelData->isBouncing = true;
         levelData->currentBankiFrame = (levelData->currentBankiFrame + 1) % 10;
-        playWavLayered("romfs:/sounds/se_rappa.wav");
+        playWavLayered("romfs:/sounds/se_poyon2.wav");
     }
 }
 
@@ -136,7 +136,7 @@ static void bounceCatchTriggerFail(GameSceneData* data) {
     levelData->gameOver = true;
     levelData->success = false;
     data->lastGameState = GAME_FAILURE;
-    playWavLayered("romfs:/sounds/se_poyon1.wav");
+    playWavLayered("romfs:/sounds/se_huseikai.wav");
 }
 
 static void bounceCatchUpdate(GameSceneData* data, float deltaTime) {
