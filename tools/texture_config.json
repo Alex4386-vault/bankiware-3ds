@@ -291,6 +291,51 @@
       "height": 512,
       "alignment": "center",
       "scaleRatio": "height"
+    },
+    "spr_m1_6_tikuwa_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_6_banki_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_6_banki_1": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_6_banki_2": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_6_banki_3": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_6_banki_4": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_6_banki_5": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_6_banki_6": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_6_banki_7": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_6_banki_8": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_6_banki_9": {
+      "width": 64,
+      "height": 64
     }
+    
   }
 }

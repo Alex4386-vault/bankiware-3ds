@@ -13,6 +13,7 @@ extern const GameLevel DialogueSelectGame;
 extern const GameLevel CatchMeGame;
 extern const GameLevel PizzaSlicingGame;
 extern const GameLevel SearchLightGame;
+extern const GameLevel BounceCatchGame;
 
 // Level management functions
 GameLevel* getGameLevel(int levelNumber);

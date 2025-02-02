@@ -103,7 +103,7 @@ static void searchLightDraw(GameSceneData* data, const GraphicsContext* context)
     if (!levelData->success) {
         C2D_ImageTint tint;
         for (int i = 0; i < 4; i++) {
-            C2D_PlainImageTint(&tint, C2D_Color32(0, 0, 0, 127), 0.75f);
+            C2D_PlainImageTint(&tint, C2D_Color32(0, 0, 0, 255), 0.75f);
         }
 
         // Draw spotlight overlay centered on cursor position
