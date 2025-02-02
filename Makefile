@@ -18,7 +18,7 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	src src/scenes src/scenes/title src/scenes/dialogue src/scenes/game src/scenes/gameover src/scenes/game/levels
+SOURCES		:=	src src/scenes src/scenes/title src/scenes/dialogue src/scenes/game src/scenes/gameover src/scenes/game_complete src/scenes/game/levels
 DATA		:=	data
 INCLUDES	:=	src/include src/scenes $(BUILD)
 ROMFS		:=	romfs

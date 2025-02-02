@@ -3,12 +3,16 @@
 
 #include <citro2d.h>
 #include <stdbool.h>
+#include "../scenes/scene_manager.h"
 
 // Initialize text rendering system
 Result initTextRenderer(void);
 
 // Clean up text rendering system
 void exitTextRenderer(void);
+
+// Set whether text should be rendered during fade transitions
+void setTextRenderingInFade(bool enable);
 
 // Draw text at specified position
 void drawText(float x, float y, float z, float scaleX, float scaleY, u32 color, const char* text);

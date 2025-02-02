@@ -39,7 +39,10 @@ static void generateRandomBankiPositions(CounterGameData* levelData) {
     for (int i = 0; i < levelData->totalBankis; i++) {
         // Keep trying until we find a non-overlapping position
         bool validPosition = false;
-        while (!validPosition) {
+        int attempts = 0;
+        const int MAX_ATTEMPTS = 1000;  // Prevent infinite loops
+        
+        while (!validPosition && attempts < MAX_ATTEMPTS) {
             float newX = (float)(rand() % maxWidth);
             float newY = (float)(rand() % maxHeight);
             
@@ -58,6 +61,15 @@ static void generateRandomBankiPositions(CounterGameData* levelData) {
                 levelData->bankiPositions[i].x = newX;
                 levelData->bankiPositions[i].y = newY;
             }
+            
+            attempts++;
+        }
+        
+        // If we couldn't find a valid position after max attempts,
+        // place it anyway with reduced padding to prevent hanging
+        if (!validPosition) {
+            levelData->bankiPositions[i].x = (float)(rand() % maxWidth);
+            levelData->bankiPositions[i].y = (float)(rand() % maxHeight);
         }
     }
 }
@@ -160,14 +172,14 @@ static void counterGameDraw(GameSceneData* data, const GraphicsContext* context)
     // Draw current input
     char inputText[8];
     snprintf(inputText, sizeof(inputText), "%d", levelData->currentInput);
-    float textX = levelData->counterX + (COUNTER_SIZE / 2) - 20;
+    float textX = levelData->counterX + (COUNTER_SIZE / 2);
     float textY = levelData->counterY + (COUNTER_SIZE / 2);
-    drawText(textX, textY, 0.0f, 1.0f, 1.0f, C2D_Color32(0, 0, 0, 255), inputText);
+    drawTextWithFlags(textX, textY, 0.0f, 1.0f, 1.0f, C2D_Color32(0, 0, 0, 255), C2D_AlignCenter, inputText);
 }
 
 static void counterGameHandleInput(GameSceneData* data, const InputState* input) {
     CounterGameData* levelData = (CounterGameData*)data->currentLevelData;
-    if (levelData == NULL || levelData->gameOver || levelData->validationPending) return;
+    if (levelData == NULL || levelData->gameOver) return;
     
     // Handle A button or touch screen input
     bool touchInBounds = (input->touch.px >= levelData->counterX &&
@@ -179,12 +191,15 @@ static void counterGameHandleInput(GameSceneData* data, const InputState* input)
     
     if (inputActivated) {
         levelData->currentInput++;
+        playWavLayered("romfs:/sounds/se_pa3.wav");
         
         // Start validation timer when reaching target number
-        if (levelData->currentInput >= levelData->totalBankis) {
+        if (levelData->currentInput == levelData->totalBankis) {
             levelData->validationPending = true;
-            levelData->validationTimer = 0.0f;
+        } else {
+            levelData->validationPending = false;
         }
+        levelData->validationTimer = 0.0f;
     }
 }
 

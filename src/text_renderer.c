@@ -29,6 +29,9 @@ void drawText(float x, float y, float z, float scaleX, float scaleY, u32 color, 
 
 void drawTextWithFlags(float x, float y, float z, float scaleX, float scaleY, u32 color, u32 flags, const char* text) {
     if (!g_initialized || !text) return;
+    
+    // Skip text rendering during fade transitions
+    if (getCurrentFadeState() != FADE_NONE) return;
 
     C2D_TextBufClear(g_textBuf);
     float currentY = y;

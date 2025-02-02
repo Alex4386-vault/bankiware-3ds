@@ -43,6 +43,7 @@ void freeTextureStore(void);
 // Display functions
 Result displayImage(const char* path, float x, float y);
 Result displayTiledImage(const char* path, float x, float y, float width, float height, float offsetX, float offsetY);
+Result displayTiledImageWithTint(const char* path, float x, float y, float width, float height, float offsetX, float offsetY, C2D_ImageTint *tint);
 Result displayImageWithScaling(const char* path, float x, float y, C2D_ImageTint *tint, float scaleX, float scaleY);
 Result displayImageWithScalingAndRotation(const char* path, float x, float y, C2D_ImageTint *tint, float scaleX, float scaleY, float rotation);
 

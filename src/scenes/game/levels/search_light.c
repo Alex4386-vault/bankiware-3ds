@@ -11,6 +11,8 @@
 #define SPOTLIGHT_RADIUS 64.0f
 #define SPOTLIGHT_SPEED 4.0f
 
+#define SPOTLIGHT_FOUND_TIME 0.5f
+
 #define TEXTURE_PATH_BANKI "romfs:/textures/spr_m1_5_banki_0.t3x"
 #define TEXTURE_PATH_BANKI_DETECTED "romfs:/textures/spr_m1_5_banki_1.t3x"
 #define TEXTURE_PATH_SPOTLIGHT "romfs:/textures/spr_m1_5_black_0.t3x"
@@ -25,6 +27,8 @@ typedef struct SearchLightData {
     
     float bankiX;
     float bankiY;
+
+    float foundTime;
 } SearchLightData;
 
 static void searchLightReset(SearchLightData* levelData) {
@@ -67,9 +71,18 @@ static void searchLightUpdate(GameSceneData* data, float deltaTime) {
     float dy = levelData->spotlightY - levelData->bankiY;
     float distance = sqrtf(dx * dx + dy * dy);
     
-    if (!levelData->gameOver && distance < SPOTLIGHT_RADIUS) {
-        levelData->gameOver = true;
+    if (!levelData->gameOver) {
+        if (distance < SPOTLIGHT_RADIUS) {
+            levelData->foundTime += deltaTime;
+        } else {
+            levelData->foundTime = 0.0f;
+        }
+    } 
+
+    // Check for win condition
+    if (levelData->foundTime >= SPOTLIGHT_FOUND_TIME && !levelData->gameOver) {
         levelData->success = true;
+        levelData->gameOver = true;
         data->lastGameState = GAME_SUCCESS;
         playWavLayered("romfs:/sounds/se_seikai.wav");
     }
@@ -105,6 +118,8 @@ static void searchLightDraw(GameSceneData* data, const GraphicsContext* context)
         for (int i = 0; i < 4; i++) {
             C2D_PlainImageTint(&tint, C2D_Color32(0, 0, 0, 255), 0.75f);
         }
+
+        displayTiledImageWithTint(TEXTURE_PATH_SPOTLIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, levelData->spotlightX - 256, levelData->spotlightY - 256, &tint);
 
         // Draw spotlight overlay centered on cursor position
         displayImageWithScaling(TEXTURE_PATH_SPOTLIGHT, 

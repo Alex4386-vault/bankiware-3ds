@@ -94,7 +94,7 @@ static void dialogueSelectDraw(GameSceneData* data, const GraphicsContext* conte
     C2D_TargetClear(context->bottom, C2D_Color32(0, 0, 0, 255));
 
     // draw a background for bottom
-    displayTiledImage("romfs:/textures/bg_5_0.t3x", 0, 0, SCREEN_WIDTH_BOTTOM, SCREEN_HEIGHT_BOTTOM, levelData->offsetX, levelData->offsetY);
+    displayTiledImage(texturePath, 0, 0, SCREEN_WIDTH_BOTTOM, SCREEN_HEIGHT_BOTTOM, levelData->offsetX, levelData->offsetY);
 
     // show 4 dialogue options,
     float optionX = (SCREEN_WIDTH_BOTTOM / 2) - 64.0f;

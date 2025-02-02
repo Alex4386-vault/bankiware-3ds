@@ -41,16 +41,27 @@ static void gameInit(Scene* scene) {
     data->shouldEnterGameAt = 1.8f + 2.0f;
     data->showSpeedUpAt = -1.0f;
     data->showSpeedUpTimer = -1.0f;
+    data->showBossStageAt = -1.0f;
+    data->showBossStageTimer = -1.0f;
+    data->gameLevelOffset = rand() % 9;
+    data->gameSessionTime = 4.0f;
     
     playWavFromRomfsRange("romfs:/sounds/bgm_ready.wav", 0, SECONDS_TO_SAMPLES(1.8f));
     queueWavFromRomfsRange("romfs:/sounds/bgm_jingleNext.wav", 0, SECONDS_TO_SAMPLES(2.0f));
+}
+
+static GameLevel* getCurrentLevel(GameSceneData* data) {
+    if (data->currentLevel == 10) {
+        return &BossStageGame;
+    }
+    return getGameLevel(data->currentLevel + data->gameLevelOffset);
 }
 
 static void gameEnterHandler(Scene *scene) {
     GameSceneData* data = (GameSceneData*)scene->data;
     
     // Initialize the current level
-    GameLevel* currentLevel = getGameLevel(data->currentLevel);
+    GameLevel* currentLevel = getCurrentLevel(data);
     if (!currentLevel) {
         panicEverything("Failed to load game level");
         return;
@@ -62,7 +73,6 @@ static void gameEnterHandler(Scene *scene) {
     }
 
     // TODO: When it speeds up, update it accordingly
-    data->gameSessionTime = 4.0f;
     data->gameLeftTime = data->gameSessionTime;
     data->elapsedTimeSinceStageScreen = 0.0f;
     
@@ -74,7 +84,7 @@ static void gameLeaveHandler(Scene *scene) {
     GameSceneData* data = (GameSceneData*)scene->data;
     
     // First reset the level if needed
-    GameLevel* currentLevel = getGameLevel(data->currentLevel);
+    GameLevel* currentLevel = getCurrentLevel(data);
     if (currentLevel && currentLevel->reset) {
         currentLevel->reset(data);
     }
@@ -85,7 +95,8 @@ static void gameLeaveHandler(Scene *scene) {
     // Update game state
     data->isInGame = false;
     data->elapsedTimeSinceStageScreen = 0.0f;
-    
+
+    int savedGameState = data->lastGameState;
     if (data->lastGameState == GAME_UNDEFINED) {
         data->lastGameState = GAME_FAILURE;
     }
@@ -107,33 +118,59 @@ static void gameLeaveHandler(Scene *scene) {
         data->isComplete = true;
         queueWavFromRomfs("romfs:/sounds/bgm_gameover.wav");
     } else {
-        // Set up next level timings
+        data->shouldEnterGameAt = 1.8f + 2.0f;
+
         if (data->currentLevel < 10) {
             data->shouldIncreaseLevelAt = 1.8f + 0.5f;
-            data->shouldEnterGameAt = 1.8f + 2.0f;
 
-            // if the levels are 3, 6 we need to speed up
-            if (data->currentLevel == 3 || data->currentLevel == 6) {
-                data->gameSessionTime -= 0.5f;
+            // Set up next level timings
+            if (data->currentLevel < 9) {
+                // if the levels are 3, 6 we need to speed up
+                if (data->currentLevel == 3 || data->currentLevel == 6) {
+                    data->gameSessionTime -= 0.5f;
 
-                float speedUpTime = 3.5f;
+                    float speedUpTime = 3.5f;
+
+                    // also we play speed up sound
+                    data->shouldIncreaseLevelAt += speedUpTime;
+                    data->shouldEnterGameAt += speedUpTime;
+
+                    data->showSpeedUpAt = 1.8f;
+                    data->showSpeedUpTimer = speedUpTime;
+
+                    queueWavFromRomfsRange("romfs:/sounds/bgm_jingleSpeedUp.wav", 0, SECONDS_TO_SAMPLES(speedUpTime));
+                }
+            } else if (data->currentLevel == 9) {
+                // we are now entering the boss stage
+                float bossStageTime = 3.5f;
 
                 // also we play speed up sound
-                data->shouldIncreaseLevelAt += speedUpTime;
-                data->shouldEnterGameAt += speedUpTime;
+                data->shouldIncreaseLevelAt += bossStageTime;
+                data->shouldEnterGameAt += bossStageTime;
 
-                data->showSpeedUpAt = 1.8f;
-                data->showSpeedUpTimer = 1.8f + speedUpTime;
+                data->showBossStageAt = 1.8f;
+                data->showBossStageTimer = bossStageTime;
 
-                queueWavFromRomfsRange("romfs:/sounds/bgm_jingleSpeedUp.wav", 0, SECONDS_TO_SAMPLES(speedUpTime));
+                // entering the boss stage.
+                // the boss stage takes 20 seconds.
+                data->gameSessionTime = 20.0f;
+
+                queueWavFromRomfsRange("romfs:/sounds/bgm_jingleBossstage.wav", 0, SECONDS_TO_SAMPLES(bossStageTime));
             }
+
+            queueWavFromRomfs("romfs:/sounds/bgm_jingleNext.wav");
         } else {
-            // we are now entering the boss stage
+            if (savedGameState == GAME_SUCCESS) {
+                data->isComplete = true;
 
+                // handle termination
+                queueWavFromRomfs("romfs:/sounds/bgm_gameover.wav");
+            } else {
+                // re-enter the level
+                data->shouldIncreaseLevelAt = -1.0f;
+                queueWavFromRomfs("romfs:/sounds/bgm_jingleNext.wav");
+            }
         }
-
-        
-        queueWavFromRomfs("romfs:/sounds/bgm_jingleNext.wav");
     }
 }
 
@@ -166,9 +203,14 @@ static void gameUpdate(Scene* scene, float deltaTime) {
                 changeScene(SCENE_GAMEOVER);
             }
         } else {
-            // handle game success.
-            // TODO: go to postgame dialogue
-            
+            // game complete
+            if (data->elapsedTimeSinceStageScreen > 6.0f) {
+                stopAudio();
+                changeScene(SCENE_POSTGAME_DIALOGUE);
+            } else if (data->elapsedTimeSinceStageScreen > 5.5f) {
+                // stop playing anything
+                stopAudio();
+            }
         }
 
         // DO NOT HANDLE ANYTHING ELSE.
@@ -185,7 +227,7 @@ static void gameUpdate(Scene* scene, float deltaTime) {
             }
             
             // Update current level
-            GameLevel* currentLevel = getGameLevel(data->currentLevel);
+            GameLevel* currentLevel = getCurrentLevel(data);
             if (currentLevel && currentLevel->update) {
                 currentLevel->update(data, deltaTime);
             }
@@ -233,6 +275,13 @@ static void gameUpdate(Scene* scene, float deltaTime) {
         data->showSpeedUpTimer -= deltaTime;
         if (data->showSpeedUpTimer <= 0.0f) {
             data->showSpeedUpTimer = -1.0f;
+        }
+    }
+
+    if (data->showBossStageTimer > 0.0f && data->showBossStageAt <= data->elapsedTimeSinceStageScreen) {
+        data->showBossStageTimer -= deltaTime;
+        if (data->showBossStageTimer <= 0.0f) {
+            data->showBossStageTimer = -1.0f;
         }
     }
 }
@@ -368,8 +417,8 @@ static void gameDraw(Scene* scene, const GraphicsContext* context) {
     GameSceneData* data = (GameSceneData*)scene->data;
 
     // Let current level draw its content
-    if (data->isInGame) {
-        GameLevel* currentLevel = getGameLevel(data->currentLevel);
+    if (data->isInGame) {    
+        GameLevel* currentLevel = getCurrentLevel(data);
         if (currentLevel && currentLevel->draw) {
             currentLevel->draw(data, context);
         }
@@ -433,12 +482,13 @@ static void gameDraw(Scene* scene, const GraphicsContext* context) {
             "Life Remaining: %d\n"
             "State: %s\n"
             "StageTime: %.2f\n"
+            "Actual Level: %d\n"
             "\n"
             "Press START to exit to TITLE\n"
             "Press A to reset game Timer\n"
             "B: Idle, X: Fail, Y: Success\n"
             "Up, Down: Life count\n"
-            "Left, Right: Current Level", data->elapsedTime, data->gameLeftTime, data->remainingLife, bankiState, data->elapsedTimeSinceStageScreen);
+            "Left, Right: Current Level", data->elapsedTime, data->gameLeftTime, data->remainingLife, bankiState, data->elapsedTimeSinceStageScreen, (data->currentLevel + data->gameLevelOffset));
             drawText(10.0f, 10.0f, 0.5f, 0.5f, 0.5f, C2D_Color32(255, 255, 255, 255), timeText);
         } else {
             // Draw the tiled background on bottom screen
@@ -451,7 +501,31 @@ static void gameDraw(Scene* scene, const GraphicsContext* context) {
             }
 
             if (data->showSpeedUpTimer > 0 && data->showSpeedUpAt <= data->elapsedTimeSinceStageScreen) {
-                displayImage("romfs:/textures/spr_speedup_0.t3x", SCREEN_WIDTH_BOTTOM / 2 - 128, SCREEN_HEIGHT_BOTTOM / 2 - 32);
+                float animProgress = (data->elapsedTimeSinceStageScreen - data->showSpeedUpAt) / 0.5f; // 0.5s animation
+                if (animProgress > 1.0f) animProgress = 1.0f;
+                
+                // Apply ease-out using quadratic formula: 1 - (1-x)^2
+                float easeOutProgress = 1.0f - ((1.0f - animProgress) * (1.0f - animProgress));
+                
+                float startX = SCREEN_WIDTH_BOTTOM;
+                float endX = SCREEN_WIDTH_BOTTOM / 2 - 128;
+                float currentX = startX + (endX - startX) * easeOutProgress;
+                
+                displayImage("romfs:/textures/spr_speedup_0.t3x", currentX, SCREEN_HEIGHT_BOTTOM / 2 - 32);
+            }
+
+            if (data->showBossStageTimer > 0 && data->showBossStageAt <= data->elapsedTimeSinceStageScreen) {
+                float animProgress = (data->elapsedTimeSinceStageScreen - data->showBossStageAt) / 0.5f; // 0.5s animation
+                if (animProgress > 1.0f) animProgress = 1.0f;
+                
+                // Apply ease-out using quadratic formula: 1 - (1-x)^2
+                float easeOutProgress = 1.0f - ((1.0f - animProgress) * (1.0f - animProgress));
+                
+                float startX = SCREEN_WIDTH_BOTTOM;
+                float endX = SCREEN_WIDTH_BOTTOM / 2 - 128;
+                float currentX = startX + (endX - startX) * easeOutProgress;
+                
+                displayImage("romfs:/textures/spr_bossstage_0.t3x", currentX, SCREEN_HEIGHT_BOTTOM / 2 - 32);
             }
         }
     }
@@ -486,8 +560,8 @@ static void gameDrawTV(Scene* scene) {
 static void gameHandleInput(Scene* scene, const InputState* input) {
     GameSceneData* data = (GameSceneData*)scene->data;
 
-    if (data->isInGame) {
-        GameLevel* currentLevel = getGameLevel(data->currentLevel);
+    if (data->isInGame) {    
+        GameLevel* currentLevel = getCurrentLevel(data);
         if (currentLevel && currentLevel->handleInput) {
             currentLevel->handleInput(data, input);
         }

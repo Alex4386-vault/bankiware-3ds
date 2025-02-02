@@ -128,14 +128,7 @@ static void titleHandleInput(Scene* scene, const InputState* input) {
 static void titleUpdate(Scene* scene, float deltaTime) {
     TitleSceneData* data = (TitleSceneData*)scene->data;
 
-    data->offsetX += data->scrollSpeed;
-    data->offsetY += data->scrollSpeed;
-
-    // Wrap offsets to match texture size
-    if (data->offsetX <= -128.0f) data->offsetX = 0.0f;
-    if (data->offsetY <= -128.0f) data->offsetY = 0.0f;
-    if (data->offsetX >= 128.0f) data->offsetX = 0.0f;
-    if (data->offsetY >= 128.0f) data->offsetY = 0.0f;
+    UPDATE_BACKGROUND_SCROLL(data, 128.0f, SCROLL_SPEED);
 }
 
 static void titleDraw(Scene* scene, const GraphicsContext* context) {

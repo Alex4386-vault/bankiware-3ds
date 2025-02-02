@@ -3,7 +3,7 @@
 
 // Array of game levels
 static GameLevel* gameLevels[] = {
-    (GameLevel*)&ExampleStubGame,  // Cast to GameLevel* to match array type
+    // (GameLevel*)&ExampleStubGame,  // Cast to GameLevel* to match array type
     // ============================
     (GameLevel*)&LaserBeamGame,   // Cast to GameLevel* to match array type
     (GameLevel*)&CatchMeGame,     // Cast to GameLevel* to match array type
@@ -12,6 +12,8 @@ static GameLevel* gameLevels[] = {
     (GameLevel*)&SearchLightGame,    // Cast to GameLevel* to match array type
     (GameLevel*)&BounceCatchGame,    // Cast to GameLevel* to match array type
     (GameLevel*)&CounterGame,        // Cast to GameLevel* to match array type
+    (GameLevel*)&EatingCakeGame,     // Cast to GameLevel* to match array type
+    (GameLevel*)&SelectOneGame,      // Cast to GameLevel* to match array type
     NULL  // Sentinel value
 };
 

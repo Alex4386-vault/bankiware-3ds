@@ -201,6 +201,10 @@ Result displayImage(const char* path, float x, float y) {
 }
 
 Result displayTiledImage(const char* path, float x, float y, float width, float height, float offsetX, float offsetY) {
+    return displayTiledImageWithTint(path, x, y, width, height, offsetX, offsetY, NULL);
+}
+
+Result displayTiledImageWithTint(const char* path, float x, float y, float width, float height, float offsetX, float offsetY, C2D_ImageTint *tint) {
     if (!path) {
         printf("Invalid path for displayTiledImage\n");
         return -1;
@@ -264,7 +268,7 @@ Result displayTiledImage(const char* path, float x, float y, float width, float 
         for (int tx = 0; tx < tilesX; tx++) {
             float tileX = startX + (tx * tex->width) - (tx > 0 ? overlap : 0);
             float tileY = startY + (ty * tex->height) - (ty > 0 ? overlap : 0);
-            C2D_DrawImageAt(image, tileX, tileY, 0.0f, NULL, 1.0f, 1.0f);
+            C2D_DrawImageAt(image, tileX, tileY, 0.0f, tint, 1.0f, 1.0f);
         }
     }
 

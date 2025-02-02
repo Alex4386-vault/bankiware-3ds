@@ -395,6 +395,10 @@ void stopAudioChannel(int channel) {
 
     // Clear queue if stopping channel 0
     if (channel == 0) {
+        // Clear all queue entries to prevent any pending audio from playing
+        for (int i = 0; i < MAX_QUEUED_AUDIO; i++) {
+            memset(&audioQueue[i], 0, sizeof(QueuedAudio));
+        }
         queueHead = 0;
         queueTail = 0;
         queueCount = 0;
@@ -418,41 +422,50 @@ void soundUpdate(void) {
         return;
     }
 
+    // Verify queue entry is valid before playing
+    QueuedAudio* nextAudio = peekNextAudio();
+    if (!nextAudio || !nextAudio->buffer || nextAudio->samples == 0) {
+        // Invalid queue entry, clear it and return
+        if (nextAudio) dequeueAudio();
+        return;
+    }
+
     // If nothing is playing, start playing from queue immediately
     if (!ndspChnIsPlaying(0)) {
-        QueuedAudio* nextAudio = peekNextAudio();
-        if (nextAudio) {
-            // Play the next queued audio
-            waveBuf0.data_vaddr = nextAudio->buffer;
-            waveBuf0.nsamples = nextAudio->samples;
-            waveBuf0.looping = false;
-            waveBuf0.status = NDSP_WBUF_FREE;
-            DSP_FlushDataCache(nextAudio->buffer, nextAudio->size);
-            ndspChnWaveBufAdd(0, &waveBuf0);
-            
-            printf("Starting queued audio: %lu samples (queue count: %d)\n",
-                   (unsigned long)nextAudio->samples, queueCount);
-            dequeueAudio();
-            return;
-        }
+        // Play the next queued audio
+        waveBuf0.data_vaddr = nextAudio->buffer;
+        waveBuf0.nsamples = nextAudio->samples;
+        waveBuf0.looping = false;
+        waveBuf0.status = NDSP_WBUF_FREE;
+        DSP_FlushDataCache(nextAudio->buffer, nextAudio->size);
+        ndspChnWaveBufAdd(0, &waveBuf0);
+        
+        printf("Starting queued audio: %lu samples (queue count: %d)\n",
+               (unsigned long)nextAudio->samples, queueCount);
+        dequeueAudio();
+        return;
     }
 
     // Check if current audio is finished
     if (waveBuf0.status == NDSP_WBUF_DONE) {
-        QueuedAudio* nextAudio = peekNextAudio();
-        if (nextAudio) {
-            // Play the next queued audio
-            waveBuf0.data_vaddr = nextAudio->buffer;
-            waveBuf0.nsamples = nextAudio->samples;
-            waveBuf0.looping = false;
-            waveBuf0.status = NDSP_WBUF_FREE;
-            DSP_FlushDataCache(nextAudio->buffer, nextAudio->size);
-            ndspChnWaveBufAdd(0, &waveBuf0);
-            
-            printf("Playing next queued audio: %lu samples (queue count: %d)\n",
-                   (unsigned long)nextAudio->samples, queueCount);
-            dequeueAudio();
+        // Verify next queue entry again as it might have changed
+        nextAudio = peekNextAudio();
+        if (!nextAudio || !nextAudio->buffer || nextAudio->samples == 0) {
+            if (nextAudio) dequeueAudio();
+            return;
         }
+
+        // Play the next queued audio
+        waveBuf0.data_vaddr = nextAudio->buffer;
+        waveBuf0.nsamples = nextAudio->samples;
+        waveBuf0.looping = false;
+        waveBuf0.status = NDSP_WBUF_FREE;
+        DSP_FlushDataCache(nextAudio->buffer, nextAudio->size);
+        ndspChnWaveBufAdd(0, &waveBuf0);
+        
+        printf("Playing next queued audio: %lu samples (queue count: %d)\n",
+               (unsigned long)nextAudio->samples, queueCount);
+        dequeueAudio();
     }
 }
 

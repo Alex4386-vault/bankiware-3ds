@@ -110,6 +110,12 @@ for img in raw/img/*.png; do
             "right")
                 gravity="East"
                 ;;
+            "top")
+                gravity="North"
+                ;;
+            "bottom")
+                gravity="South"
+                ;;
             *)
                 gravity="Center"
                 ;;

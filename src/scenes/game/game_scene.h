@@ -2,6 +2,7 @@
 #define GAME_SCENE_H
 
 #include "../scene.h"
+#include "../scene_manager.h"
 
 #define GAME_TIMER_HEIGHT 64.0f
 
@@ -54,12 +55,21 @@ typedef struct GameSceneData {
 
     float showSpeedUpAt;
     float showSpeedUpTimer;
+    float showBossStageAt;
+    float showBossStageTimer;
+
+    float speedUpSlideX;  // For sliding animation
 
     void *currentLevelData;
     void *currentLevelObj;
+
+    int gameLevelOffset;
 } GameSceneData;
 
 // Create a new game scene
 Scene* createGameScene(void);
+
+// Get the current game scene data
+const GameSceneData* getCurrentGameScene(void);
 
 #endif // GAME_SCENE_H

@@ -8,6 +8,8 @@ typedef enum {
     SCENE_PREGAME_DIALOGUE,
     SCENE_GAME,
     SCENE_GAMEOVER,
+    SCENE_POSTGAME_DIALOGUE,
+    SCENE_GAME_COMPLETE,
     SCENE_COUNT
 } SceneType;
 
@@ -42,6 +44,9 @@ void drawCurrentScene(const GraphicsContext* context);
 // Touch transition management
 void registerTouchTransition(TouchTransition transition);
 void clearTouchTransitions(void);
+
+// Get current fade state
+FadeState getCurrentFadeState(void);
 
 bool isRequestingExit(void);
 void requestExit(void);

@@ -23,6 +23,11 @@ typedef struct PizzaSlicingData {
     float currentRotation;  // Current pizza rotation in degrees
     float targetRotation;   // Target rotation for successful cut
     bool hasCut;           // Whether pizza has been cut
+    bool touchActive;      // Whether touch is currently being held
+    float pizzaCenterX;   // X coordinate of pizza center
+    float pizzaCenterY;   // Y coordinate of pizza center
+    float lastTouchAngle; // Last calculated touch angle
+    float lastTouchReleaseTime;  // Time when last touch was released
 } PizzaSlicingData;
 
 static void pizzaSlicingReset(PizzaSlicingData* levelData) {
@@ -33,6 +38,11 @@ static void pizzaSlicingReset(PizzaSlicingData* levelData) {
     levelData->currentRotation = frand() * M_PI;
     levelData->targetRotation = 0.0f;
     levelData->hasCut = false;
+    levelData->touchActive = false;
+    levelData->pizzaCenterX = SCREEN_WIDTH_BOTTOM / 2;
+    levelData->pizzaCenterY = SCREEN_HEIGHT_BOTTOM - 10 - (128 * PIZZA_SCALE);
+    levelData->lastTouchAngle = 0.0f;
+    levelData->lastTouchReleaseTime = 0.0f;
 }
 
 static void pizzaSlicingInit(GameSceneData* data) {
@@ -106,42 +116,93 @@ static void pizzaSlicingDraw(GameSceneData* data, const GraphicsContext* context
     }
 }
 
+static float calculateTouchAngle(float touchX, float touchY, float centerX, float centerY) {
+    float dx = touchX - centerX;
+    float dy = touchY - centerY;
+    return atan2f(dy, dx);
+}
+
+static void performCut(PizzaSlicingData* levelData, GameSceneData* data) {
+    levelData->hasCut = true;
+    
+    float rotationDiff = fmodf(levelData->currentRotation + M_PI, M_PI) - levelData->targetRotation;
+    if (rotationDiff > M_PI / 2) rotationDiff = M_PI - rotationDiff;
+
+    if (rotationDiff <= ROTATION_TOLERANCE) {
+        levelData->gameOver = true;
+        levelData->success = true;
+        data->lastGameState = GAME_SUCCESS;
+        playWavLayered("romfs:/sounds/se_seikai.wav");
+    } else {
+        levelData->gameOver = true;
+        levelData->success = false;
+        data->lastGameState = GAME_FAILURE;
+        playWavLayered("romfs:/sounds/se_huseikai.wav");
+    }
+}
+
 static void pizzaSlicingHandleInput(GameSceneData* data, const InputState* input) {
     PizzaSlicingData* levelData = (PizzaSlicingData*)data->currentLevelData;
     if (levelData == NULL) return;
 
     if (!levelData->gameOver) {
-        // Handle rotation
+        // Handle keyboard controls
         if (input->kHeld & KEY_DLEFT || input->kHeld & KEY_LEFT) {
             levelData->currentRotation -= ROTATION_SPEED;
         }
         if (input->kHeld & KEY_DRIGHT || input->kHeld & KEY_RIGHT) {
             levelData->currentRotation += ROTATION_SPEED;
         }
+        if (input->kDown & KEY_A && !levelData->hasCut) {
+            performCut(levelData, data);
+        }
+
+        // Get current time in seconds
+        float currentTime = osGetTime() / 1000.0f;
+
+        // Handle touch input
+        if (input->touch.px > 0 || input->touch.py > 0) {  // Touch is active
+            if (!levelData->touchActive) {
+                // New touch - check for double tap
+                if (!levelData->hasCut &&
+                    (currentTime - levelData->lastTouchReleaseTime) <= 0.5f) {
+                    // Double tap within 0.5 seconds - perform cut
+                    performCut(levelData, data);
+                } else {
+                    // Single tap - start rotation
+                    levelData->touchActive = true;
+                    levelData->lastTouchAngle = calculateTouchAngle(
+                        input->touch.px,
+                        input->touch.py,
+                        levelData->pizzaCenterX,
+                        levelData->pizzaCenterY
+                    );
+                }
+            } else {
+                // Continuing touch - calculate rotation
+                float currentAngle = calculateTouchAngle(
+                    input->touch.px,
+                    input->touch.py,
+                    levelData->pizzaCenterX,
+                    levelData->pizzaCenterY
+                );
+                
+                float angleDiff = currentAngle - levelData->lastTouchAngle;
+                // Handle angle wrapping
+                if (angleDiff > M_PI) angleDiff -= 2 * M_PI;
+                if (angleDiff < -M_PI) angleDiff += 2 * M_PI;
+                
+                levelData->currentRotation += angleDiff;
+                levelData->lastTouchAngle = currentAngle;
+            }
+        } else if (levelData->touchActive) {  // Touch was released
+            levelData->touchActive = false;
+            levelData->lastTouchReleaseTime = currentTime;
+        }
 
         // Normalize rotation to 0-2*pi
         while (levelData->currentRotation < 0) levelData->currentRotation += (2 * M_PI);
         while (levelData->currentRotation >= (2 * M_PI)) levelData->currentRotation -= (2 * M_PI);
-
-        // Handle cutting
-        if (input->kDown & KEY_A) {
-            float rotationDiff = fmodf(levelData->currentRotation + M_PI, M_PI) - levelData->targetRotation;
-            if (rotationDiff > M_PI / 2) rotationDiff = M_PI - rotationDiff;
-
-            levelData->hasCut = true;
-
-            if (rotationDiff <= ROTATION_TOLERANCE) {
-                levelData->gameOver = true;
-                levelData->success = true;
-                data->lastGameState = GAME_SUCCESS;
-                playWavLayered("romfs:/sounds/se_seikai.wav");
-            } else {
-                levelData->gameOver = true;
-                levelData->success = false;
-                data->lastGameState = GAME_FAILURE;
-                playWavLayered("romfs:/sounds/se_huseikai.wav");
-            }
-        }
     }
 }
 

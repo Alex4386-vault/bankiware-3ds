@@ -1,8 +1,10 @@
 #include "scene_manager.h"
 #include "title/title_scene.h"
 #include "dialogue/pregame_dialogue_scene.h"
+#include "dialogue/postgame_dialogue_scene.h"
 #include "game/game_scene.h"
 #include "gameover/gameover_scene.h"
+#include "game_complete/game_complete_scene.h"
 #include "../include/sound_system.h"
 #include "../include/text_renderer.h"
 #include <stdlib.h>
@@ -24,6 +26,10 @@ static const char* getSceneTypeName(SceneType type) {
             return "Game";
         case SCENE_GAMEOVER:
             return "Game Over";
+        case SCENE_POSTGAME_DIALOGUE:
+            return "Postgame Dialogue";
+        case SCENE_GAME_COMPLETE:
+            return "Game Complete";
         default:
             return "Unknown";
     }
@@ -170,6 +176,12 @@ static Result createNewScene(SceneType type, Scene** scene) {
             break;
         case SCENE_GAMEOVER:
             newScene = createGameoverScene();
+            break;
+        case SCENE_POSTGAME_DIALOGUE:
+            newScene = createPostgameDialogueScene();
+            break;
+        case SCENE_GAME_COMPLETE:
+            newScene = createGameCompleteScene();
             break;
         default:
             rc = -1;
@@ -463,4 +475,8 @@ bool isRequestingExit(void) {
 
 void requestExit(void) {
     requestedExit = true;
+}
+
+FadeState getCurrentFadeState(void) {
+    return fadeState;
 }

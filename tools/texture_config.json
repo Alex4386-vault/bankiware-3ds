@@ -343,6 +343,129 @@
     "spr_m1_7_counter_0": {
       "width": 128,
       "height": 128
+    },
+    "spr_m1_8_cake_0": {
+      "width": 256,
+      "height": 256,
+      "alignment": "bottom"
+    },
+    "spr_m1_8_cake_1": {
+      "width": 256,
+      "height": 256,
+      "alignment": "bottom"
+    },
+    "spr_m1_8_cake_2": {
+      "width": 256,
+      "height": 256,
+      "alignment": "bottom"
+    },
+    "spr_m1_8_cake_3": {
+      "width": 256,
+      "height": 256,
+      "alignment": "bottom"
+    },
+    "spr_m1_8_cake_4": {
+      "width": 256,
+      "height": 256,
+      "alignment": "bottom"
+    },
+    "spr_m1_8_cake_5": {
+      "width": 256,
+      "height": 256,
+      "alignment": "bottom"
+    },
+    "spr_m1_8_cake_6": {
+      "width": 256,
+      "height": 256,
+      "alignment": "bottom"
+    },
+    "spr_m1_8_banki_0": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_m1_9_allow_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_9_ekisya_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_9_ekisya_1": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_9_iwa_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_9_oonusa_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_9_banki_0": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_m1_boss_enemy_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_boss_enemy_1": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_boss_enemy_2": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_boss_enemy_3": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_boss_enemy_4": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_boss_bankibody_0": {
+      "width": 64,
+      "height": 128
+    },
+    "spr_m1_boss_bankibody_1": {
+      "width": 64,
+      "height": 128
+    },
+    "spr_m1_boss_bankihead_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_boss_bankihead_1": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_m1_boss_bankihead2_0": {
+      "width": 64,
+      "height": 64
+    },
+    "spr_outro1_0": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_outro2_0": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_outro3_0": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_outro4_0": {
+      "width": 512,
+      "height": 256
+    },
+    "spr_end_0": {
+      "width": 512,
+      "height": 256
     }
   }
 }
