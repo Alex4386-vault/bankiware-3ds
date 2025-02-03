@@ -13,9 +13,9 @@
 #define BODY_WIDTH 64.0f
 #define BODY_HEIGHT 64.0f
 
-#define GRAVITY 0.5f
-#define JUMP_FORCE -8.0f
-#define OBSTACLE_SPEED 4.0f
+#define GRAVITY 0.25f
+#define JUMP_FORCE -4.0f
+#define OBSTACLE_SPEED 6.0f
 
 typedef struct Obstacle {
     float x;
@@ -45,6 +45,7 @@ typedef struct BossStageData {
     float bodyX;
     float bodyY;
     bool failureTriggered;
+    float gameOverTimer;
 } BossStageData;
 
 static void freeObstacles(Obstacle* head) {
@@ -76,12 +77,14 @@ static void bossStageReset(BossStageData* levelData) {
     if (levelData->obstacles != NULL) {
         freeObstacles(levelData->obstacles);
     }
-    levelData->timer = 0;
+    levelData->timer = 24;
     levelData->obstacles = NULL;
     levelData->bodySpawned = false;
     levelData->bodyX = -300.0f;
-    levelData->bodyY = 1050.0f;
+    levelData->bodyY = SCREEN_HEIGHT - BODY_HEIGHT;
     levelData->failureTriggered = false;
+
+    levelData->gameOverTimer = -1.0f;
 }
 
 static void bossStageInit(GameSceneData* data) {
@@ -123,34 +126,45 @@ static bool checkCollision(float x1, float y1, float w1, float h1, float x2, flo
             y1 + h1 > y2);
 }
 
+static void bossStageGenerateObstacles(GameSceneData *data) {
+    if (data == NULL) return;
+    BossStageData* levelData = (BossStageData*)data->currentLevelData;
+    if (levelData == NULL) return;
+
+    if (levelData->timer == 120 || levelData->timer == 240 || levelData->timer == 360) {
+        addObstacle(levelData);
+    } else if (levelData->timer >= 480 && levelData->timer <= 960 && levelData->timer % 120 == 0) {
+        addObstacle(levelData);
+        addObstacle(levelData);
+    } else if (levelData->timer == 1080 && !levelData->bodySpawned) {
+        levelData->bodySpawned = true;
+        levelData->bodyX = -300.0f;
+    }    
+}
+
 static void bossStageUpdate(GameSceneData* data, float deltaTime) {
     BossStageData* levelData = (BossStageData*)data->currentLevelData;
     if (levelData == NULL) return;
     
     levelData->timer++;
-    
-    // Start BGM
-    if (levelData->timer == 24) {
-        playWavFromRomfsLoop("romfs:/sounds/bgm_bossgame2.wav");
-    }
-    
+
     // Spawn obstacles based on timer
     if (!levelData->gameOver) {
-        if (levelData->timer == 120 || levelData->timer == 240 || levelData->timer == 360) {
-            addObstacle(levelData);
-        } else if (levelData->timer >= 480 && levelData->timer <= 960 && levelData->timer % 120 == 0) {
-            addObstacle(levelData);
-            addObstacle(levelData);
-        } else if (levelData->timer == 1080 && !levelData->bodySpawned) {
-            levelData->bodySpawned = true;
-            levelData->bodyX = -300.0f;
-        }
+        bossStageGenerateObstacles(data);
     }
     
     // Update background scroll
     levelData->bgOffset += SCROLL_SPEED;
     if (levelData->bgOffset >= SCREEN_WIDTH) {
         levelData->bgOffset = 0;
+    }
+
+    if (levelData->gameOverTimer > 0) {
+        levelData->gameOverTimer -= deltaTime;
+        if (levelData->gameOverTimer <= 0) {
+            // due to how the implementation works, setting it as 0 won't exit the game.
+            data->gameLeftTime = 0.1f;
+        }
     }
     
     if (!levelData->gameOver) {
@@ -163,6 +177,7 @@ static void bossStageUpdate(GameSceneData* data, float deltaTime) {
             levelData->characterY = 0;
             levelData->velocityY = 0;
         }
+
         if (levelData->characterY > SCREEN_HEIGHT) {
             if (!levelData->failureTriggered) {
                 levelData->failureTriggered = true;
@@ -170,6 +185,8 @@ static void bossStageUpdate(GameSceneData* data, float deltaTime) {
                 levelData->gameDecided = true;
                 levelData->success = false;
                 data->lastGameState = GAME_FAILURE;
+                levelData->gameOverTimer = 2.0f;
+
                 stopAudio();
                 playWavFromRomfs("romfs:/sounds/bgm_jingleBossFailed.wav");
             }
@@ -225,6 +242,8 @@ static void bossStageUpdate(GameSceneData* data, float deltaTime) {
                 levelData->gameDecided = true;
                 levelData->success = true;
                 data->lastGameState = GAME_SUCCESS;
+                levelData->gameOverTimer = 2.0f;
+
                 stopAudio();
                 playWavFromRomfs("romfs:/sounds/bgm_jingleBossClear.wav");
             }
@@ -261,7 +280,11 @@ static void bossStageDraw(GameSceneData* data, const GraphicsContext* context) {
         
         // Draw body if spawned
         if (levelData->bodySpawned) {
-            displayImage("romfs:/textures/spr_m1_boss_bankibody_0.t3x", levelData->bodyX, levelData->bodyY);
+            if (levelData->success) {
+                displayImage("romfs:/textures/spr_m1_boss_bankibody_1.t3x", levelData->bodyX, levelData->bodyY - BODY_HEIGHT);
+            } else {
+                displayImage("romfs:/textures/spr_m1_boss_bankibody_0.t3x", levelData->bodyX, levelData->bodyY);
+            }
         }
         
         // Draw character
