@@ -12,9 +12,10 @@
 
 #define MOVE_SPEED 8.0f
 #define GRAVITY 0.3f
-#define INITIAL_FALL_SPEED 2.0f
-#define BOUNCE_SPEED -12.0f
-#define HORIZONTAL_BOUNCE_SPEED 6.0f
+#define INITIAL_FALL_SPEED 1.0f
+#define BOUNCE_SPEED_MIN -8.0f
+#define BOUNCE_SPEED_MAX -16.0f
+#define HORIZONTAL_BOUNCE_SPEED 4.0f
 #define MAX_BOUNCE_HEIGHT (-OFFSCREEN_HEIGHT)
 
 #define TRAMPOLINE_WIDTH 64.0f
@@ -23,8 +24,8 @@
 #define SCREEN_TOTAL_HEIGHT (SCREEN_HEIGHT + SCREEN_HEIGHT_BOTTOM)
 #define OFFSCREEN_HEIGHT 64.0f
 
-#define ROTATION_SPEED 0.05f
-#define MAX_ROTATION_SPEED (M_PI / 8.0f)
+#define ROTATION_SPEED 0.025f
+#define MAX_ROTATION_SPEED (M_PI / 12.0f)
 
 #define TEXTURE_PATH_TRAMPOLINE "romfs:/textures/spr_m1_6_tikuwa_0.t3x"
 #define TEXTURE_PATH_BANKI_FORMAT "romfs:/textures/spr_m1_6_banki_%d.t3x"
@@ -121,7 +122,7 @@ static void bounceCatchCheckBounce(GameSceneData* data) {
         }
         
         levelData->bankiVelocityX = xVelocity;
-        levelData->bankiVelocityY = BOUNCE_SPEED;
+        levelData->bankiVelocityY = frand() * (BOUNCE_SPEED_MAX - BOUNCE_SPEED_MIN) + BOUNCE_SPEED_MIN;
         levelData->isBouncing = true;
         levelData->currentBankiFrame = (levelData->currentBankiFrame + 1) % 10;
         playWavLayered("romfs:/sounds/se_poyon2.wav");
@@ -278,7 +279,16 @@ static void bounceCatchHandleInput(GameSceneData* data, const InputState* input)
         targetX = SCREEN_WIDTH_BOTTOM - TRAMPOLINE_WIDTH;
     }
 
+    float currentX = levelData->playerX;
     levelData->playerX = targetX;
+
+    // get player moved direction
+    float movedDirection = levelData->playerX - currentX;
+    if (movedDirection > 0) {
+        levelData->lastPressedDirection = -1.0f;
+    } else {
+        levelData->lastPressedDirection = 1.0f;
+    }
 }
 
 static void bounceCatchResetGame(GameSceneData* data) {

@@ -153,8 +153,8 @@ static void gameLeaveHandler(Scene *scene) {
                 data->showBossStageTimer = bossStageTime;
 
                 // entering the boss stage.
-                // the boss stage takes 20 seconds.
-                data->gameSessionTime = 20.0f;
+                // the boss stage takes 25 seconds.
+                data->gameSessionTime = 25.0f;
                 data->showTimer = false;
 
                 queueWavFromRomfsRange("romfs:/sounds/bgm_jingleBossstage.wav", 0, SECONDS_TO_SAMPLES(bossStageTime));

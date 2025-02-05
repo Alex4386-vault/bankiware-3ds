@@ -79,9 +79,11 @@ static void pizzaSlicingDraw(GameSceneData* data, const GraphicsContext* context
     float rotationDiff = fmodf(levelData->currentRotation + M_PI, M_PI) - levelData->targetRotation;
     if (rotationDiff > M_PI / 2) rotationDiff = M_PI - rotationDiff;
 
+#ifdef DEBUG
     char rotationText[64];
     snprintf(rotationText, sizeof(rotationText), "RotationDiff: %.2f, Threshold: %.2f", rotationDiff, ROTATION_TOLERANCE);
     drawText(10.0f, 10.0f, 0.5f, 0.5f, 0.5f, C2D_Color32(255, 255, 255, 255), rotationText);
+#endif
 
     // Draw bottom screen (pizza game)
     C2D_SceneBegin(context->bottom);

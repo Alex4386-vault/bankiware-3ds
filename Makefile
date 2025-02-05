@@ -23,10 +23,10 @@ DATA		:=	data
 INCLUDES	:=	src/include src/scenes $(BUILD)
 ROMFS		:=	romfs
 
-APP_TITLE       := Bankiware 3DS
-APP_DESCRIPTION := Bankiware Game for Nintendo 3DS
+APP_TITLE       := Bankiware
+APP_DESCRIPTION := Bankiware
 APP_AUTHOR      := Sekibanki Inc.
-APP_ICON 				:= $(TOPDIR)/temp_textures/icon.png
+APP_ICON 				:= $(TOPDIR)/generated/icon.png
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -134,6 +134,7 @@ clean:
 	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(TARGET).elf
 	@rm -fr data/textures/*.t3x romfs/textures/*.t3x
 	@rm -fr romfs/sounds/*.wav
+	@rm -fr generated/
 
 #---------------------------------------------------------------------------------
 else

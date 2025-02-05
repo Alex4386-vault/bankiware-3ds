@@ -41,7 +41,7 @@ static void gameCompleteDraw(Scene* scene, const GraphicsContext* context) {
             return;
         }
 
-        displayImageWithScaling("romfs:/textures/spr_end_0.t3x", 0, 15, NULL, 0.8f, 0.8f);
+        displayImageWithScaling("romfs:/textures/spr_end_0.t3x", -2, 15, NULL, 0.8f, 0.8f);
     }
     
     if (context->bottom) {
@@ -60,11 +60,11 @@ static void gameCompleteDraw(Scene* scene, const GraphicsContext* context) {
 
         drawTextWithFlags(
             SCREEN_WIDTH_BOTTOM / 2,
-            SCREEN_HEIGHT_BOTTOM / 2 - 40,
+            SCREEN_HEIGHT_BOTTOM / 2 - 10,
             0.5f, 0.5f, 0.5f,
             C2D_Color32(255, 255, 255, 255),
             C2D_AlignCenter,
-            "A:タイトルに戻る"
+            "A:タイトルに戻る\nA: Return to title"
         );
     }
 }

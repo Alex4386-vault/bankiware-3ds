@@ -20,3 +20,6 @@
 
 # No macOS Stuff!
 .DS_Store
+
+# remove generated files
+/generated

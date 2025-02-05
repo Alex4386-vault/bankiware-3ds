@@ -122,7 +122,7 @@ static void laserBeamGameDraw(GameSceneData* data, const GraphicsContext* contex
                       0, BUTTON_WIDTH, BUTTON_HEIGHT, levelData->laserFired ? C2D_Color32(50, 25, 0, 255) : C2D_Color32(190, 75, 0, 255));
 
     // Draw text on button
-    drawTextWithFlags(BUTTON_X, BUTTON_Y - 16, 0.5f, 1.0f, 1.0f, C2D_Color32(255, 255, 255, 255), C2D_AlignCenter, "FIRE");
+    drawTextWithFlags(BUTTON_X, BUTTON_Y - 16, 0.5f, 1.0f, 1.0f, C2D_Color32(255, 255, 255, 255), C2D_AlignCenter, "ビーム");
 }
 
 static void handleLaserBeamGameHit(GameSceneData* data) {

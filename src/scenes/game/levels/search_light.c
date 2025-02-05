@@ -37,9 +37,25 @@ static void searchLightReset(SearchLightData* levelData) {
     levelData->gameOver = false;
     levelData->success = false;
     
-    // Random banki position on top screen
-    levelData->bankiX = (float)(rand() % ((int)SCREEN_WIDTH_BOTTOM - 64));  // 64 is sprite width
-    levelData->bankiY = (float)(rand() % ((int)SCREEN_HEIGHT_BOTTOM - 64)); // 64 is sprite height
+    // Get center coordinates
+    float centerX = SCREEN_WIDTH_BOTTOM / 2;
+    float centerY = SCREEN_HEIGHT_BOTTOM / 2;
+    
+    // Keep generating positions until we get one that's far enough from center
+    int attempts = 0;
+    do {
+        levelData->bankiX = (float)(rand() % ((int)SCREEN_WIDTH_BOTTOM - 64));  // 64 is sprite width
+        levelData->bankiY = (float)(rand() % ((int)SCREEN_HEIGHT_BOTTOM - 64)); // 64 is sprite height
+        
+        // Calculate distance from center
+        float dx = levelData->bankiX - centerX;
+        float dy = levelData->bankiY - centerY;
+        float distanceFromCenter = sqrtf(dx * dx + dy * dy);
+        
+        // If we're far enough from center (using spotlight radius as minimum distance), break
+        if (distanceFromCenter > SPOTLIGHT_RADIUS * 1.5f) break;
+        attempts++;
+    } while (attempts < 100);  // Prevent infinite loop
     
     // Start spotlight in center
     levelData->spotlightX = SCREEN_WIDTH_BOTTOM / 2;

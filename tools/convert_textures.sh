@@ -209,10 +209,11 @@ for img in raw/img/*.png; do
 done
 
 # Convert icon
-if [ -f "raw/icon.png" ]; then
-    echo "Converting icon..."
-    $CONVERT "raw/img/spr_lifebanki_0.png" -resize 48x48 -background white -gravity center -extent 48x48 "temp_textures/icon.png"
-fi
+echo "Converting icon..."
+mkdir -p generated
+$CONVERT "raw/img/spr_lifebanki_0.png" -resize 48x48 -background white -gravity center -extent 48x48 "generated/icon.png"
+$CONVERT "raw/img/spr_lifebanki_0.png" -resize 48x48 -background none -gravity center -extent 48x48 "generated/icon_transparent.png"
+$CONVERT "raw/img/spr_title_0.png" -resize 256x128 -background none -gravity center -extent 256x128 "generated/title.png"
 
 # Clean up temporary files
 #rm -rf temp_textures

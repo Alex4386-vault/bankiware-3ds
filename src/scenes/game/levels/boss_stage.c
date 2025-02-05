@@ -10,14 +10,16 @@
 #define CHARACTER_HEIGHT 64.0f
 
 // for better controllability
-#define OBSTACLE_WIDTH 48.0f
-#define OBSTACLE_HEIGHT 48.0f
+#define OBSTACLE_WIDTH 64.0f
+#define OBSTACLE_HEIGHT 64.0f
+#define OBSTACLE_COLLISION_WIDTH 48.0f
+#define OBSTACLE_COLLISION_HEIGHT 48.0f
 #define BODY_WIDTH 64.0f
 #define BODY_HEIGHT 64.0f
 
 #define GRAVITY 0.25f
 #define JUMP_FORCE -4.0f
-#define OBSTACLE_SPEED 6.0f
+#define OBSTACLE_SPEED 4.0f
 
 typedef struct Obstacle {
     float x;
@@ -142,15 +144,20 @@ static void bossStageInit(GameSceneData* data) {
     levelData->characterY = SCREEN_HEIGHT / 2;
     data->currentLevelData = levelData;
     data->gameLeftTime = data->gameSessionTime;
+    bossStageReset(levelData);
 
     playWavFromRomfsRange("romfs:/sounds/bgm_bossgame2.wav", 0.0f, SECONDS_TO_SAMPLES(25.0f));
 }
 
 static bool checkObstacleOverlap(Obstacle* obstacles, float x, float y) {
     Obstacle* current = obstacles;
+    
+    int collisionDiffX = (OBSTACLE_WIDTH - OBSTACLE_COLLISION_WIDTH) / 2;
+    int collisionDiffY = (OBSTACLE_HEIGHT - OBSTACLE_COLLISION_HEIGHT) / 2;
+
     while (current != NULL) {
         if (checkCollision(x, y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT,
-                         current->x, current->y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT)) {
+                         current->x + collisionDiffX, current->y + collisionDiffY, OBSTACLE_COLLISION_WIDTH, OBSTACLE_COLLISION_HEIGHT)) {
             return true;
         }
         current = current->next;
@@ -166,9 +173,9 @@ static void addObstacle(BossStageData* levelData) {
     
     // Define three fixed positions with enough space for player to pass through
     const float positions[] = {
-        64.0f,                     // Top position
-        SCREEN_HEIGHT / 2 - 32.0f, // Center position
-        SCREEN_HEIGHT - 128.0f     // Bottom position
+        8.0f,                     // Top position
+        88.0f, // Center position
+        168.0f     // Bottom position
     };
     
     // Try each position in random order
@@ -246,13 +253,18 @@ static void bossStageUpdate(GameSceneData* data, float deltaTime) {
     
     if (!levelData->gameOver) {
         // Update character physics
-        levelData->velocityY += GRAVITY;
-        levelData->characterY += levelData->velocityY;
+        if (!levelData->failureTriggered) {
+            levelData->velocityY += GRAVITY;
+            levelData->characterY += levelData->velocityY;
+        }
         
         // Keep character in bounds
         if (levelData->characterY < 0) {
             levelData->characterY = 0;
             levelData->velocityY = 0;
+
+            // play bounce sound
+            playWavLayered("romfs:/sounds/se_boyon2.wav");
         }
 
         if (levelData->characterY > SCREEN_HEIGHT) {
@@ -284,10 +296,13 @@ static void bossStageUpdate(GameSceneData* data, float deltaTime) {
             }
             
             // Check collision
-            if (checkCollision(levelData->characterX, levelData->characterY,
-                             CHARACTER_WIDTH, CHARACTER_HEIGHT,
-                             (*current)->x, (*current)->y,
-                             OBSTACLE_WIDTH, OBSTACLE_HEIGHT)) {
+            
+            int collisionDiffX = (OBSTACLE_WIDTH - OBSTACLE_COLLISION_WIDTH) / 2;
+            int collisionDiffY = (OBSTACLE_HEIGHT - OBSTACLE_COLLISION_HEIGHT) / 2;
+            if (checkCollision(levelData->characterX + collisionDiffX, levelData->characterY + collisionDiffY,
+                             OBSTACLE_COLLISION_WIDTH, OBSTACLE_COLLISION_HEIGHT,
+                             (*current)->x + collisionDiffX, (*current)->y + collisionDiffY,
+                             OBSTACLE_COLLISION_WIDTH, OBSTACLE_COLLISION_HEIGHT)) {
                 if (!levelData->failureTriggered) {
                     levelData->failureTriggered = true;
                     levelData->gameOver = true;
@@ -313,8 +328,18 @@ static void bossStageUpdate(GameSceneData* data, float deltaTime) {
         
         // Update body position if spawned
         if (levelData->bodySpawned) {
-            if (levelData->bodyX < SCREEN_WIDTH - BODY_WIDTH) {
+            if (levelData->bodyX < SCREEN_WIDTH) {
                 levelData->bodyX += OBSTACLE_SPEED;
+            } else {
+                // you missed the body.
+                levelData->failureTriggered = true;
+                levelData->gameOver = true;
+                levelData->gameDecided = true;
+                levelData->success = false;
+                levelData->gameOverTimer = 2.0f;
+                data->lastGameState = GAME_FAILURE;
+                stopLongAudio();
+                playWavFromRomfs("romfs:/sounds/bgm_jingleBossFailed.wav");
             }
             
             // Check for successful landing
@@ -366,19 +391,21 @@ static void bossStageDraw(GameSceneData* data, const GraphicsContext* context) {
         // Draw body if spawned
         if (levelData->bodySpawned) {
             if (levelData->success) {
-                displayImage("romfs:/textures/spr_m1_boss_bankibody_1.t3x", levelData->bodyX, levelData->bodyY - BODY_HEIGHT);
+                displayImage("romfs:/textures/spr_m1_boss_bankibody_1.t3x", levelData->bodyX, levelData->bodyY - BODY_HEIGHT + 30);
             } else {
                 displayImage("romfs:/textures/spr_m1_boss_bankibody_0.t3x", levelData->bodyX, levelData->bodyY);
             }
         }
         
         // Draw character
-        const char* characterSprite = levelData->failureTriggered ? 
-            "romfs:/textures/spr_m1_boss_bankibody2_0.t3x" :
-            (levelData->isHeadingUp ? 
-                "romfs:/textures/spr_m1_boss_bankihead_0.t3x" : 
-                "romfs:/textures/spr_m1_boss_bankihead_1.t3x");
-        displayImage(characterSprite, levelData->characterX, levelData->characterY);
+        if (!levelData->success) {
+            const char* characterSprite = levelData->failureTriggered ? 
+                "romfs:/textures/spr_m1_boss_bankihead2_0.t3x" :
+                (levelData->isHeadingUp ? 
+                    "romfs:/textures/spr_m1_boss_bankihead_0.t3x" : 
+                    "romfs:/textures/spr_m1_boss_bankihead_1.t3x");
+            displayImage(characterSprite, levelData->characterX, levelData->characterY);
+        }
     }
     
     // Draw bottom screen
@@ -390,9 +417,9 @@ static void bossStageDraw(GameSceneData* data, const GraphicsContext* context) {
         drawText(10, SCREEN_HEIGHT_BOTTOM - 50, 0.5f, 0.5f, 0.5f, C2D_Color32(255, 255, 255, 255),
                 "Touch or press A to jump!");
 
-        char text[128];
-        snprintf(text, sizeof(text), "bodyY: %.1f", levelData->bodyY);
-        drawText(10, 10, 0.5f, 0.5f, 0.5f, C2D_Color32(255, 255, 255, 255), text);
+        // char text[128];
+        // snprintf(text, sizeof(text), "bodyY: %.1f", levelData->bodyY);
+        // drawText(10, 10, 0.5f, 0.5f, 0.5f, C2D_Color32(255, 255, 255, 255), text);
     }
 }
 
@@ -404,6 +431,7 @@ static void bossStageHandleInput(GameSceneData* data, const InputState* input) {
     if ((input->kDown & KEY_A) || (input->kDown & KEY_TOUCH)) {
         levelData->velocityY = JUMP_FORCE;
         levelData->isJumping = true;
+        playWavLayered("romfs:/sounds/se_nyu2.wav");
     }
 }
 
