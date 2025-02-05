@@ -64,6 +64,7 @@ typedef struct GameSceneData {
     void *currentLevelObj;
 
     int gameLevelOffset;
+    bool showTimer;
 } GameSceneData;
 
 // Create a new game scene

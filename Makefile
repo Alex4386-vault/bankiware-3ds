@@ -26,6 +26,7 @@ ROMFS		:=	romfs
 APP_TITLE       := Bankiware 3DS
 APP_DESCRIPTION := Bankiware Game for Nintendo 3DS
 APP_AUTHOR      := Sekibanki Inc.
+APP_ICON 				:= $(TOPDIR)/temp_textures/icon.png
 
 #---------------------------------------------------------------------------------
 # options for code generation

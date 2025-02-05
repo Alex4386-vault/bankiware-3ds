@@ -6,16 +6,13 @@
 #define SAMPLERATE 22050
 #define CHANNELS 2
 #define BYTESPERSAMPLE 2
-#define MAX_QUEUE_SIZE (1024 * 512) // 512KB max size for queued audio
-#define MAX_AUDIO_SIZE (1024 * 1024 * 4) // 4MB max size for direct playback
 
 static ndspWaveBuf waveBuf0, waveBuf1;  // One for each channel
-static u32* audioBuffer = NULL;
-static u32* audioBuffer2 = NULL;  // Buffer for second channel
 
 // Audio queue management
 static QueuedAudio audioQueue[MAX_QUEUED_AUDIO];
-static u32* queueBuffers[MAX_QUEUED_AUDIO];  // Pre-allocated buffers for queued audio
+static u32* currentAudioBuffer = NULL;   // Current audio buffer
+static u32* secondaryAudioBuffer = NULL; // Secondary audio buffer
 static int queueHead = 0;  // Index of next audio to play
 static int queueTail = 0;  // Index where next audio will be added
 static int queueCount = 0; // Number of queued items
@@ -31,65 +28,64 @@ static bool isQueueFull(void) {
     return queueCount >= MAX_QUEUED_AUDIO;
 }
 
-static void enqueueAudio(const u32* buffer, size_t samples, size_t size) {
+static void enqueueAudio(u32* buffer, size_t samples, size_t bufferSize, size_t dataSize) {
     if (isQueueFull()) {
-        printf("Audio queue full, dropping audio (%lu samples)\n", (unsigned long)samples);
+        linearFree(buffer);
         return;
     }
     
-    // Copy audio data to queue buffer
-    memcpy(queueBuffers[queueTail], buffer, size);
-    
-    // Set up queue entry
-    audioQueue[queueTail].buffer = queueBuffers[queueTail];
+    // Set up queue entry with the provided buffer
+    audioQueue[queueTail].buffer = buffer;
     audioQueue[queueTail].samples = samples;
-    audioQueue[queueTail].size = size;
+    audioQueue[queueTail].size = dataSize;
+    audioQueue[queueTail].bufferSize = bufferSize;
     
     queueTail = (queueTail + 1) % MAX_QUEUED_AUDIO;
     queueCount++;
-    
-    printf("Enqueued audio at position %d, count now %d (%lu samples)\n",
-           (queueTail - 1 + MAX_QUEUED_AUDIO) % MAX_QUEUED_AUDIO,
-           queueCount,
-           (unsigned long)samples);
 }
 
 static QueuedAudio* peekNextAudio(void) {
     if (isQueueEmpty()) return NULL;
     return &audioQueue[queueHead];
 }
-
 static void dequeueAudio(void) {
     if (isQueueEmpty()) return;
+    
+    // Free the buffer from the dequeued audio
+    if (audioQueue[queueHead].buffer) {
+        linearFree(audioQueue[queueHead].buffer);
+        audioQueue[queueHead].buffer = NULL;
+    }
+    
     queueHead = (queueHead + 1) % MAX_QUEUED_AUDIO;
     queueCount--;
 }
+
 // Forward declarations
 static void setupChannel(int channel);
 static Result loadWavFile(const char* filename, u32* buffer, size_t* outRead, u16* outBitsPerSample, u16* outNumChannels, u32 startSample, u32 numSamples);
 
 static bool shouldUseDirectPlayback(const char* filename) {
-    FILE* file = fopen(filename, "rb");
-    if (!file) return true;  // If we can't check size, use direct playback to be safe
-    
-    fseek(file, 0, SEEK_END);
-    size_t fileSize = ftell(file);
-    fclose(file);
-    
-    return fileSize > MAX_QUEUE_SIZE || isQueueFull();
+    return isQueueFull();  // Only check if queue is full
 }
 
 static void ensureChannelReady(void) {
     if (!ndspChnIsPlaying(0)) {
+        // Allocate a small buffer for silence
+        u32* silenceBuffer = (u32*)linearAlloc(1024);
+        if (!silenceBuffer) return;
+
         // Initialize with silence to ensure proper state
-        memset(audioBuffer, 0, 1024);
-        waveBuf0.data_vaddr = audioBuffer;
+        memset(silenceBuffer, 0, 1024);
+        waveBuf0.data_vaddr = silenceBuffer;
         waveBuf0.nsamples = 256;
         waveBuf0.looping = false;
         waveBuf0.status = NDSP_WBUF_DONE;
-        DSP_FlushDataCache(audioBuffer, 1024);
+        DSP_FlushDataCache(silenceBuffer, 1024);
         ndspChnWaveBufAdd(0, &waveBuf0);
-        printf("Channel initialized with silence\n");
+
+        // Free the silence buffer after adding to wave buf
+        linearFree(silenceBuffer);
     }
 }
 
@@ -116,37 +112,6 @@ Result soundInit(void) {
         return ret;
     }
 
-    // Create and initialize main audio buffers (4MB for direct playback)
-    audioBuffer = (u32*)linearAlloc(MAX_AUDIO_SIZE);
-    audioBuffer2 = (u32*)linearAlloc(MAX_AUDIO_SIZE);
-    
-    // Initialize queue buffers (512KB each for jingles)
-    for (int i = 0; i < MAX_QUEUED_AUDIO; i++) {
-        queueBuffers[i] = (u32*)linearAlloc(MAX_QUEUE_SIZE);
-        if (!queueBuffers[i]) {
-            // Cleanup on failure
-            printf("Failed to allocate queue buffer %d\n", i);
-            if (audioBuffer) linearFree(audioBuffer);
-            if (audioBuffer2) linearFree(audioBuffer2);
-            for (int j = 0; j < i; j++) {
-                linearFree(queueBuffers[j]);
-            }
-            ndspExit();
-            return -1;
-        }
-    }
-
-    if (!audioBuffer || !audioBuffer2) {
-        printf("Failed to allocate main audio buffers\n");
-        if (audioBuffer) linearFree(audioBuffer);
-        if (audioBuffer2) linearFree(audioBuffer2);
-        for (int i = 0; i < MAX_QUEUED_AUDIO; i++) {
-            linearFree(queueBuffers[i]);
-        }
-        ndspExit();
-        return -1;
-    }
-
     // Setup NDSP
     ndspSetOutputMode(NDSP_OUTPUT_STEREO);
     ndspSetOutputCount(2);  // Using 2 channels
@@ -156,36 +121,37 @@ Result soundInit(void) {
     setupChannel(0);
     setupChannel(1);
 
-    // Initialize wave buffers with proper validation
+    // Initialize wave buffers
     memset(&waveBuf0, 0, sizeof(ndspWaveBuf));
     memset(&waveBuf1, 0, sizeof(ndspWaveBuf));
     
-    if (audioBuffer) {
-        waveBuf0.data_vaddr = audioBuffer;
-        waveBuf0.status = NDSP_WBUF_FREE;
-    }
-    
-    if (audioBuffer2) {
-        waveBuf1.data_vaddr = audioBuffer2;
-        waveBuf1.status = NDSP_WBUF_FREE;
-    }
+    waveBuf0.status = NDSP_WBUF_FREE;
+    waveBuf1.status = NDSP_WBUF_FREE;
 
     // Initialize queue state
     queueHead = 0;
     queueTail = 0;
     queueCount = 0;
+    currentAudioBuffer = NULL;
+    secondaryAudioBuffer = NULL;
     
     soundInitialized = true;
-    printf("Sound system initialized\n");
+    return 0;
+}
+
+static Result getWavFileSize(const char* filename, size_t* outSize) {
+    FILE* file = fopen(filename, "rb");
+    if (!file) return -2;
+
+    fseek(file, 0, SEEK_END);
+    *outSize = ftell(file);
+    fclose(file);
     return 0;
 }
 
 static Result loadWavFile(const char* filename, u32* buffer, size_t* outRead, u16* outBitsPerSample, u16* outNumChannels, u32 startSample, u32 numSamples) {
     FILE* file = fopen(filename, "rb");
-    if (!file) {
-        printf("Failed to open file: %s\n", filename);
-        return -2;
-    }
+    if (!file) return -2;
 
     // Read WAV header
     u32 magic, size, fmt, subchunk1id, subchunk1size;
@@ -244,13 +210,6 @@ static Result loadWavFile(const char* filename, u32* buffer, size_t* outRead, u1
         readSize = chunk_size - startByte;
     }
 
-    // Check buffer size
-    if (readSize > MAX_AUDIO_SIZE) {
-        printf("Audio data too large: %lu bytes\n", (unsigned long)readSize);
-        fclose(file);
-        return -5;
-    }
-
     // Seek to start position
     fseek(file, startByte, SEEK_CUR);
 
@@ -270,39 +229,61 @@ static Result loadWavFile(const char* filename, u32* buffer, size_t* outRead, u1
 }
 
 Result playWavFromRomfs(const char* filename) {
+    printf("Attempting to play: %s\n", filename);
     return playWavFromRomfsRange(filename, 0, 0);  // 0 numSamples means play entire file
 }
 
-Result playWavFromRomfsRange(const char* filename, u32 startSample, u32 numSamples) {
+Result playWavFromRomfsRangeWithSpeed(const char* filename, u32 startSample, u32 numSamples, float speedMultiplier) {
     if (!soundInitialized) return -1;
+    if (speedMultiplier <= 0.0f) return -1;
+
+    // Get file size first
+    size_t fileSize;
+    Result rc = getWavFileSize(filename, &fileSize);
+    if (R_FAILED(rc)) return rc;
+
+    // Free any existing buffer
+    if (currentAudioBuffer) {
+        linearFree(currentAudioBuffer);
+        currentAudioBuffer = NULL;
+    }
+
+    // Allocate new buffer
+    currentAudioBuffer = (u32*)linearAlloc(fileSize);
+    if (!currentAudioBuffer) return -1;
 
     // Only stop if something is actually playing
     if (ndspChnIsPlaying(0)) {
+        waveBuf0.status = NDSP_WBUF_DONE;
         ndspChnWaveBufClear(0);
-        while (ndspChnIsPlaying(0)) {
-            svcSleepThread(100000); // 0.1ms
-        }
     }
 
     size_t read;
     u16 bits_per_sample, num_channels;
-    Result rc = loadWavFile(filename, audioBuffer, &read, &bits_per_sample, &num_channels, startSample, numSamples);
-    if (R_FAILED(rc)) return rc;
-
-    // Setup and play audio with validation
-    if (audioBuffer && read > 0) {
-        waveBuf0.data_vaddr = audioBuffer;
-        waveBuf0.nsamples = read / (bits_per_sample >> 3) / num_channels;
-        waveBuf0.looping = false;
-        waveBuf0.status = NDSP_WBUF_FREE;
-        DSP_FlushDataCache(audioBuffer, read);
-        ndspChnWaveBufAdd(0, &waveBuf0);
+    rc = loadWavFile(filename, currentAudioBuffer, &read, &bits_per_sample, &num_channels, startSample, numSamples);
+    if (R_FAILED(rc)) {
+        linearFree(currentAudioBuffer);
+        currentAudioBuffer = NULL;
+        return rc;
     }
 
-    printf("Playing %lu samples from offset %lu\n", 
-           (unsigned long)waveBuf0.nsamples, 
-           (unsigned long)startSample);
+    // Setup and play audio with speed adjustment
+    waveBuf0.data_vaddr = currentAudioBuffer;
+    waveBuf0.nsamples = read / (bits_per_sample >> 3) / num_channels;
+    waveBuf0.looping = false;
+    waveBuf0.status = NDSP_WBUF_FREE;
+    
+    // Apply speed multiplier by adjusting the playback rate
+    ndspChnSetRate(0, SAMPLERATE * speedMultiplier);
+    
+    DSP_FlushDataCache(currentAudioBuffer, read);
+    ndspChnWaveBufAdd(0, &waveBuf0);
+
     return 0;
+}
+
+Result playWavFromRomfsRange(const char* filename, u32 startSample, u32 numSamples) {
+    return playWavFromRomfsRangeWithSpeed(filename, startSample, numSamples, 1.0f);
 }
 
 Result queueWavFromRomfs(const char* filename) {
@@ -314,63 +295,75 @@ Result queueWavFromRomfsRange(const char* filename, u32 startSample, u32 numSamp
 
     // Check if we should use direct playback
     if (shouldUseDirectPlayback(filename)) {
-        printf("Using direct playback for %s\n", filename);
         return playWavFromRomfsRange(filename, startSample, numSamples);
     }
 
-    // Try to queue the audio
-    u32* tempBuffer = (u32*)linearAlloc(MAX_QUEUE_SIZE);
-    if (!tempBuffer) {
-        printf("Failed to allocate temp buffer, falling back to direct playback\n");
+    // Get file size first
+    size_t fileSize;
+    Result rc = getWavFileSize(filename, &fileSize);
+    if (R_FAILED(rc)) return rc;
+
+    // Allocate buffer for the audio
+    u32* buffer = (u32*)linearAlloc(fileSize);
+    if (!buffer) {
         return playWavFromRomfsRange(filename, startSample, numSamples);
     }
 
     size_t read;
     u16 bits_per_sample, num_channels;
-    Result rc = loadWavFile(filename, tempBuffer, &read, &bits_per_sample, &num_channels, startSample, numSamples);
+    rc = loadWavFile(filename, buffer, &read, &bits_per_sample, &num_channels, startSample, numSamples);
     
     if (R_SUCCEEDED(rc)) {
         size_t samples = read / (bits_per_sample >> 3) / num_channels;
-        
-        // Copy to queue buffer and enqueue
-        memcpy(queueBuffers[queueTail], tempBuffer, read);
-        enqueueAudio(queueBuffers[queueTail], samples, read);
-        
-        printf("Queued %s: %lu samples (queue count: %d)\n",
-               filename, (unsigned long)samples, queueCount);
+        enqueueAudio(buffer, samples, fileSize, read);
     } else {
-        printf("Failed to load audio for queueing: %d\n", rc);
+        linearFree(buffer);
     }
 
-    linearFree(tempBuffer);
     return rc;
 }
 
 Result playWavFromRomfsLoop(const char* filename) {
     if (!soundInitialized) return -1;
 
+    // Get file size first
+    size_t fileSize;
+    Result rc = getWavFileSize(filename, &fileSize);
+    if (R_FAILED(rc)) return rc;
+
+    // Free any existing buffer
+    if (currentAudioBuffer) {
+        linearFree(currentAudioBuffer);
+        currentAudioBuffer = NULL;
+    }
+
+    // Allocate new buffer
+    currentAudioBuffer = (u32*)linearAlloc(fileSize);
+    if (!currentAudioBuffer) return -1;
+
     // Only stop if something is actually playing
     if (ndspChnIsPlaying(0)) {
+        waveBuf0.status = NDSP_WBUF_DONE;
         ndspChnWaveBufClear(0);
-        while (ndspChnIsPlaying(0)) {
-            svcSleepThread(100000); // 0.1ms
-        }
     }
 
     size_t read;
     u16 bits_per_sample, num_channels;
-    Result rc = loadWavFile(filename, audioBuffer, &read, &bits_per_sample, &num_channels, 0, 0);
-    if (R_FAILED(rc)) return rc;
+    rc = loadWavFile(filename, currentAudioBuffer, &read, &bits_per_sample, &num_channels, 0, 0);
+    if (R_FAILED(rc)) {
+        linearFree(currentAudioBuffer);
+        currentAudioBuffer = NULL;
+        return rc;
+    }
 
     // Setup and play audio with looping enabled
-    waveBuf0.data_vaddr = audioBuffer;
+    waveBuf0.data_vaddr = currentAudioBuffer;
     waveBuf0.nsamples = read / (bits_per_sample >> 3) / num_channels;
     waveBuf0.looping = true;
     waveBuf0.status = NDSP_WBUF_FREE;
-    DSP_FlushDataCache(audioBuffer, read);
+    DSP_FlushDataCache(currentAudioBuffer, read);
     ndspChnWaveBufAdd(0, &waveBuf0);
 
-    printf("Playing %lu samples (Looping)\n", (unsigned long)waveBuf0.nsamples);
     return 0;
 }
 
@@ -379,10 +372,9 @@ void stopAudioChannel(int channel) {
 
     // Clear and wait for channel to finish
     if (ndspChnIsPlaying(channel)) {
+        if (channel == 0) waveBuf0.status = NDSP_WBUF_DONE;
+        else if (channel == 1) waveBuf1.status = NDSP_WBUF_DONE;
         ndspChnWaveBufClear(channel);
-        while (ndspChnIsPlaying(channel)) {
-            svcSleepThread(100000); // 0.1ms
-        }
     }
     
     // Reset channel
@@ -475,22 +467,38 @@ Result playWavLayered(const char* filename) {
     // Stop previous layered sound and clean up
     stopAudioChannel(1);
 
-    size_t read;
-    u16 bits_per_sample, num_channels;
-    Result rc = loadWavFile(filename, audioBuffer2, &read, &bits_per_sample, &num_channels, 0, 0);
+    // Get file size first
+    size_t fileSize;
+    Result rc = getWavFileSize(filename, &fileSize);
     if (R_FAILED(rc)) return rc;
 
-    // Setup and play audio on channel 1
-    if (audioBuffer2) {
-        waveBuf1.data_vaddr = audioBuffer2;
-        waveBuf1.nsamples = read / (bits_per_sample >> 3) / num_channels;
-        waveBuf1.looping = false;
-        waveBuf1.status = NDSP_WBUF_FREE;
-        DSP_FlushDataCache(audioBuffer2, read);
-        ndspChnWaveBufAdd(1, &waveBuf1);
+    // Free any existing secondary buffer
+    if (secondaryAudioBuffer) {
+        linearFree(secondaryAudioBuffer);
+        secondaryAudioBuffer = NULL;
     }
 
-    printf("Playing layered sound: %lu samples\n", (unsigned long)waveBuf1.nsamples);
+    // Allocate new buffer
+    secondaryAudioBuffer = (u32*)linearAlloc(fileSize);
+    if (!secondaryAudioBuffer) return -1;
+
+    size_t read;
+    u16 bits_per_sample, num_channels;
+    rc = loadWavFile(filename, secondaryAudioBuffer, &read, &bits_per_sample, &num_channels, 0, 0);
+    if (R_FAILED(rc)) {
+        linearFree(secondaryAudioBuffer);
+        secondaryAudioBuffer = NULL;
+        return rc;
+    }
+
+    // Setup and play audio on channel 1
+    waveBuf1.data_vaddr = secondaryAudioBuffer;
+    waveBuf1.nsamples = read / (bits_per_sample >> 3) / num_channels;
+    waveBuf1.looping = false;
+    waveBuf1.status = NDSP_WBUF_FREE;
+    DSP_FlushDataCache(secondaryAudioBuffer, read);
+    ndspChnWaveBufAdd(1, &waveBuf1);
+
     return 0;
 }
 
@@ -500,25 +508,22 @@ void soundExit(void) {
     // Stop audio playback on both channels
     stopAudio();
     ndspChnWaveBufClear(1);
-    while (ndspChnIsPlaying(1)) {
-        svcSleepThread(100000); // 0.1ms
-    }
 
     // Free resources
-    if (audioBuffer) {
-        linearFree(audioBuffer);
-        audioBuffer = NULL;
+    if (currentAudioBuffer) {
+        linearFree(currentAudioBuffer);
+        currentAudioBuffer = NULL;
     }
-    if (audioBuffer2) {
-        linearFree(audioBuffer2);
-        audioBuffer2 = NULL;
+    if (secondaryAudioBuffer) {
+        linearFree(secondaryAudioBuffer);
+        secondaryAudioBuffer = NULL;
     }
     
     // Free queue buffers
     for (int i = 0; i < MAX_QUEUED_AUDIO; i++) {
-        if (queueBuffers[i]) {
-            linearFree(queueBuffers[i]);
-            queueBuffers[i] = NULL;
+        if (audioQueue[i].buffer) {
+            linearFree(audioQueue[i].buffer);
+            audioQueue[i].buffer = NULL;
         }
     }
     

@@ -8,9 +8,10 @@
 #define MAX_QUEUED_AUDIO 3  // Reduce number of queued items - we only need to queue speedup + next/gameover
 
 typedef struct {
-    u32* buffer;
-    size_t samples;
-    size_t size;
+    u32* buffer;          // Dynamically allocated buffer
+    size_t samples;       // Number of samples
+    size_t size;         // Size in bytes
+    size_t bufferSize;   // Total allocated buffer size
 } QueuedAudio;
 
 // Initialize sound system
@@ -24,6 +25,9 @@ Result playWavFromRomfsLoop(const char* filename);
 
 // Load and play WAV file from romfs with offset and length control
 Result playWavFromRomfsRange(const char* filename, u32 startSample, u32 numSamples);
+
+// Load and play WAV file from romfs with speed control
+Result playWavFromRomfsRangeWithSpeed(const char* filename, u32 startSample, u32 numSamples, float speedMultiplier);
 
 // Queue WAV file to play after current audio finishes
 Result queueWavFromRomfs(const char* filename);

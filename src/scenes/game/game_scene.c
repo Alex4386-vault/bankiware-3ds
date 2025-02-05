@@ -45,6 +45,7 @@ static void gameInit(Scene* scene) {
     data->showBossStageTimer = -1.0f;
     data->gameLevelOffset = rand() % 9;
     data->gameSessionTime = 4.0f;
+    data->showTimer = true;
     
     playWavFromRomfsRange("romfs:/sounds/bgm_ready.wav", 0, SECONDS_TO_SAMPLES(1.8f));
     queueWavFromRomfsRange("romfs:/sounds/bgm_jingleNext.wav", 0, SECONDS_TO_SAMPLES(2.0f));
@@ -127,7 +128,7 @@ static void gameLeaveHandler(Scene *scene) {
             if (data->currentLevel < 9) {
                 // if the levels are 3, 6 we need to speed up
                 if (data->currentLevel == 3 || data->currentLevel == 6) {
-                    data->gameSessionTime -= 0.5f;
+                    data->gameSessionTime -= 0.25f;
 
                     float speedUpTime = 3.5f;
 
@@ -154,6 +155,7 @@ static void gameLeaveHandler(Scene *scene) {
                 // entering the boss stage.
                 // the boss stage takes 20 seconds.
                 data->gameSessionTime = 20.0f;
+                data->showTimer = false;
 
                 queueWavFromRomfsRange("romfs:/sounds/bgm_jingleBossstage.wav", 0, SECONDS_TO_SAMPLES(bossStageTime));
             }
@@ -426,7 +428,9 @@ static void gameDraw(Scene* scene, const GraphicsContext* context) {
         // Draw the timer
         if (context->bottom) {
             C2D_SceneBegin(context->bottom);
-            gameDrawTimer(scene);
+            if (data->showTimer) {
+                gameDrawTimer(scene);
+            }
         }
 
         return;
