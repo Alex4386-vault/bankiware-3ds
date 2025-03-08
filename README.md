@@ -79,5 +79,7 @@ There are multiple ways to run the project on **real hardware**:
 This project is a fan-made project and is not in any way affiliated with the original creator (paradot) of the game.  
 
 ## License
-For the part of the codebase that I have wrote, I am releasing it under [UNLICENSE (Public domain)](https://unlicense.org/).  
-For the `./src/include/bankiware_original.h` file, Please refer to the original license of the game.  
+For the code that I have wrote, I am releasing it under [UNLICENSE (Public domain)](https://unlicense.org/).  
+
+For the `./src/include/bankiware_original.h` file, The name `bankiware`, and resources related to original game, Please refer to the original license of the game.  
+
