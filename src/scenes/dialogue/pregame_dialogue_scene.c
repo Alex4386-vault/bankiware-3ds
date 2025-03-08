@@ -2,6 +2,7 @@
 #include "../../include/text_renderer.h"
 #include "../../include/sound_system.h"
 #include "../../include/texture_loader.h"
+#include "../../include/bankiware_original.h"
 #include "../scene_manager.h"
 #include "../common.h"
 #include <stdlib.h>
@@ -93,51 +94,51 @@ static void pregameDialogueDraw(Scene* scene, const GraphicsContext* context) {
         char *text = "THIS IS FALLBACK! SOMETHING WENT WRONG!";
         switch (data->currentIdx) {
             case 0: {
-                text = "幻想郷——";
+                text = BANKI_PREGAME_00;
                 break;
             }
             case 1: {
-                text = "幻想郷では、今電子ゲームが大流行中！";
+                text = BANKI_PREGAME_01;
                 break;
             }
             case 2: {
-                text = "今泉 影狼 「……そこで、私は思ったわけ！」";
+                text = BANKI_PREGAME_02;
                 break;
             }
             case 3: {
-                text = "今泉 影狼 「草の根妖怪ネットワーク所属の、\n我らが赤蛮奇……もとい、ばんきちゃん」";
+                text = BANKI_PREGAME_03;
                 break;
             }
             case 4: {
-                text = "今泉 影狼 「ばんきちゃんの圧倒的な\"かわいさ\"は、\nもっと他の妖怪仲間たちにも知られるべきよ！！」";
+                text = BANKI_PREGAME_04;
                 break;
             }
             case 5: {
-                text = "今泉 影狼 「そこで……ばんきちゃんの『かわいさ』をゲームにして\nもっと知ってもらうのはどうかしら！！」";
+                text = BANKI_PREGAME_05;
                 break;
             }
             case 6: {
-                text = "わかさぎ姫「すてき~！！大賛成~！！」";
+                text = BANKI_PREGAME_06;
                 break;
             }
             case 7: {
-                text = "そうして……影狼とわかさぎ姫は赤蛮奇にナイショで\nゲームの開発を急ピッチで進めた";
+                text = BANKI_PREGAME_07;
                 break;
             }
             case 8: {
-                text = "今泉 影狼 「完成~！！」";
+                text = BANKI_PREGAME_08;
                 break;
             }
             case 9: {
-                text = "わかさぎ姫「やった~！！」";
+                text = BANKI_PREGAME_09;
                 break;
             }
             case 10: {
-                text = "今泉 影狼 「さっそく試作品のチェックをしないと！」";
+                text = BANKI_PREGAME_10;
                 break;
             }
             case 11: {
-                text = "わかさぎ姫「わくわく！！」";
+                text = BANKI_PREGAME_11;
                 break;
             }
         }

@@ -2,6 +2,7 @@
 #include "../../include/text_renderer.h"
 #include "../../include/sound_system.h"
 #include "../../include/texture_loader.h"
+#include "../../include/bankiware_original.h"
 #include "../scene_manager.h"
 #include "../common.h"
 #include <stdlib.h>
@@ -72,39 +73,39 @@ static void postgameDialogueDraw(Scene* scene, const GraphicsContext* context) {
         char *text = "THIS IS FALLBACK! SOMETHING WENT WRONG!";
         switch (data->currentIdx) {
             case 0: {
-                text = "今泉 影狼「我ながら、なんてすばらしい出来……」";
+                text = BANKI_POSTGAME_00;
                 break;
             }
             case 1: {
-                text = "わかさぎ姫「ばんきちゃんのかわいさがいっぱいだわ～\nさっそく天狗に頼んで流通を……」";
+                text = BANKI_POSTGAME_01;
                 break;
             }
             case 2: {
-                text = "赤蛮奇「……おい、ふたりとも」";
+                text = BANKI_POSTGAME_02;
                 break;
             }
             case 3: {
-                text = "今泉 影狼＆わかさぎ姫「ギクッ！！！」";
+                text = BANKI_POSTGAME_03;
                 break;
             }
             case 4: {
-                text = "赤蛮奇「わたしにナイショで、なんてものを作ってるんだー！？」";
+                text = BANKI_POSTGAME_04;
                 break;
             }
             case 5: {
-                text = "今泉 影狼「だ、だって……」";
+                text = BANKI_POSTGAME_05;
                 break;
             }
             case 6: {
-                text = "わかさぎ姫「ばんきちゃんはかわいいから……」";
+                text = BANKI_POSTGAME_06;
                 break;
             }
             case 7: {
-                text = "赤蛮奇「その気持ちはうれしいけど！\nこれは没収！！そしてふたりにはおしおき！！」";
+                text = BANKI_POSTGAME_07;
                 break;
             }
             case 8: {
-                text = "今泉 影狼＆わかさぎ姫「ゆ、ゆるして～！！」";
+                text = BANKI_POSTGAME_08;
                 break;
             }
         }
